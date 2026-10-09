@@ -121,9 +121,8 @@ function Brand() {
     return (
         <a className="brand" href="#home" aria-label="ShriShubh home">
             <img
-                className="brand-logo"
-                src="/images/shrishubh-logo.png"
-                alt="ShriShubh logo"
+                src={`${import.meta.env.BASE_URL}images/shrishubh-logo.png`}
+                alt="ShriShubh Logo"
             />
         </a>
     )
