@@ -119,12 +119,33 @@ const faqs = [
 
 function Brand() {
     return (
-        <a className="brand" href="#home" aria-label="ShriShubh home">
-            <img
-                src={`${import.meta.env.BASE_URL}images/shrishubh-logo.png`}
-                alt="ShriShubh Logo"
-            />
-        </a>
+        
+<a
+    className="brand"
+    href="#home"
+    aria-label="ShriShubh home"
+    style={{
+        display: 'inline-flex',
+        width: '110px',
+        height: '40px',
+        flexShrink: 0,
+        overflow: 'hidden'
+    }}
+>
+    <img
+        src={`${import.meta.env.BASE_URL}images/shrishubh-logo.png`}
+        alt="ShriShubh Logo"
+        className="site-logo"
+        style={{
+            display: 'block',
+            width: '110px',
+            height: '40px',
+            objectFit: 'contain',
+            flexShrink: 0
+        }}
+    />
+</a>
+
     )
 }
 
