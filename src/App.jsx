@@ -120,14 +120,15 @@ const faqs = [
 function Brand() {
     return (
         
+
 <a
     className="brand"
     href="#home"
     aria-label="ShriShubh home"
     style={{
         display: 'inline-flex',
-        width: '110px',
-        height: '40px',
+        width: '100px',
+        height: '30px',
         flexShrink: 0,
         overflow: 'hidden'
     }}
@@ -138,13 +139,14 @@ function Brand() {
         className="site-logo"
         style={{
             display: 'block',
-            width: '110px',
-            height: '40px',
+            width: '100px',
+            height: '30px',
             objectFit: 'contain',
             flexShrink: 0
         }}
     />
 </a>
+
 
     )
 }
