@@ -258,27 +258,38 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
   .footer-bottom { flex-direction: column; }
 
 }
-/* Fix ShriShubh logo */
+
+/* Smaller ShriShubh logo for mobile */
 .brand {
     display: inline-flex;
     align-items: center;
     justify-content: flex-start;
     width: auto;
+    max-width: 125px;
     height: auto;
-    max-width: 200px;
     overflow: hidden;
-    background: transparent;
 }
 
 .site-logo {
     display: block;
-    width: 150px;
-    height: 48px;
+    width: 115px;
+    height: 38px;
     max-width: 100%;
     object-fit: contain;
     object-position: left center;
-    background: transparent;
 }
+
+@media (max-width: 768px) {
+    .brand {
+        max-width: 120px;
+    }
+
+    .site-logo {
+        width: 110px;
+        height: 36px;
+    }
+}
+
 
 /* Fix mobile layout */
 html,
