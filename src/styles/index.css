@@ -262,16 +262,29 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 
 
 
+.brand {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: 125px !important;
+    max-width: 125px !important;
+    height: 42px !important;
+    max-height: 42px !important;
+    flex-shrink: 0 !important;
+    overflow: hidden !important;
+}
+
 .brand .site-logo {
     display: block !important;
-    width: 110px !important;
-    min-width: 110px !important;
-    max-width: 110px !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
     height: 40px !important;
     object-fit: contain !important;
     object-position: left center !important;
     margin: 0 !important;
 }
+
 
 
 
