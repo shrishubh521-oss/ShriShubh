@@ -261,24 +261,24 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 
 
 
-/* ShriShubh logo - slightly larger */
+/* ShriShubh logo - larger and clearer */
 .brand {
     display: inline-flex !important;
     align-items: center;
     justify-content: flex-start;
-    width: 215px !important;
-    max-width: 215px !important;
-    height: 58px !important;
+    width: 235px !important;
+    max-width: 235px !important;
+    height: 62px !important;
     flex-shrink: 0;
     overflow: visible !important;
 }
 
 .site-logo {
     display: block !important;
-    width: 210px !important;
-    min-width: 210px !important;
+    width: 230px !important;
+    min-width: 230px !important;
     max-width: none !important;
-    height: 58px !important;
+    height: 62px !important;
     object-fit: contain;
     object-position: left center;
     flex-shrink: 0;
