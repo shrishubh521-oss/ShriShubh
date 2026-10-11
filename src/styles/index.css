@@ -261,13 +261,14 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 
 
 
+
 .brand {
     display: inline-flex;
     align-items: center;
     justify-content: flex-start;
-    width: 95px;
-    max-width: 95px;
-    height: 100%;
+    width: 105px;
+    max-width: 105px;
+    height: 42px;
     max-height: 42px;
     overflow: hidden;
     flex-shrink: 0;
@@ -276,8 +277,8 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 
 .site-logo {
     display: block;
-    width: 90px;
-    height: 36px;
+    width: 100px;
+    height: 38px;
     max-width: 100%;
     object-fit: contain;
     object-position: left center;
@@ -286,15 +287,15 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 
 @media (max-width: 768px) {
     .brand {
+        width: 105px;
         height: 42px;
-        max-height: 42px;
-        align-self: center;
     }
 
     .site-logo {
-        width: 90px;
-        height: 36px;
+        width: 100px;
+        height: 38px;
     }
 }
+
 
 
