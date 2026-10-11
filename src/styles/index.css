@@ -260,14 +260,12 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 }
 
 
-
-
 .brand {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    width: 125px !important;
-    max-width: 125px !important;
+    width: 135px !important;
+    max-width: 135px !important;
     height: 42px !important;
     max-height: 42px !important;
     flex-shrink: 0 !important;
@@ -276,9 +274,9 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 
 .brand .site-logo {
     display: block !important;
-    width: 120px !important;
-    min-width: 120px !important;
-    max-width: 120px !important;
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
     height: 40px !important;
     object-fit: contain !important;
     object-position: left center !important;
