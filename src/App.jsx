@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import Admin from './Admin.jsx'
 import {
     ArrowRight,
     Check,
@@ -15,6 +16,8 @@ import {
     MessageCircle,
     ChevronDown,
     Send,
+    Sun,
+    Moon,
 } from 'lucide-react'
 
 const services = [
@@ -153,7 +156,7 @@ function Brand() {
     )
 }
 
-function Header() {
+function Header({ theme, setTheme }) {
     const [open, setOpen] = useState(false)
     const links = [
         ['Services', '#services'],
@@ -176,6 +179,10 @@ function Header() {
                         Get a quote <ArrowRight size={15} />
                     </a>
                 </nav>
+                <button className="theme-toggle" type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
+                    {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+                    <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+                </button>
                 <button
                     className="mobile-menu-button"
                     type="button"
@@ -291,6 +298,27 @@ function Services() {
 }
 
 function Pricing() {
+    const [displayPlans, setDisplayPlans] = useState(plans)
+    useEffect(() => {
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        if (!url || !key || url.includes('YOUR-PROJECT')) return
+        fetch(`${url}/rest/v1/pricing_packages?select=id,name,price_inr,description,features,is_active&is_active=eq.true&order=price_inr.asc`, {
+            headers: { apikey: key, Authorization: `Bearer ${key}` },
+        }).then(response => {
+            if (!response.ok) throw new Error('Pricing API unavailable')
+            return response.json()
+        }).then(rows => {
+            if (!Array.isArray(rows) || rows.length === 0) return
+            setDisplayPlans(rows.map(row => ({
+                name: row.name,
+                price: `₹${Number(row.price_inr).toLocaleString('en-IN')}`,
+                description: row.description || '',
+                features: Array.isArray(row.features) ? row.features : [],
+                popular: row.id === 'professional',
+            })))
+        }).catch(() => { /* Keep the built-in package display if Supabase is unavailable. */ })
+    }, [])
     return (
         <section className="section pricing-section" id="pricing">
             <div className="container">
@@ -302,7 +330,7 @@ function Pricing() {
                     <p>Choose a starting point. We'll confirm the scope and final price before work begins.</p>
                 </div>
                 <div className="pricing-grid">
-                    {plans.map((plan) => (
+                    {displayPlans.map((plan) => (
                         <article className={plan.popular ? 'price-card price-featured' : 'price-card'} key={plan.name}>
                             {plan.popular && <div className="popular-label"><Star size={13} /> MOST POPULAR</div>}
                             <div className="plan-name">{plan.name}</div>
@@ -320,6 +348,90 @@ function Pricing() {
                     ))}
                 </div>
                 <p className="pricing-note">Prices are starting estimates, not a final quote. Domain, hosting, paid plugins and third-party services may cost extra.</p>
+            </div>
+        </section>
+    )
+}
+
+
+function DemoGallery() {
+    const demos = [
+        { number: '01', type: 'BUSINESS', title: 'Modern business site', description: 'A clear, confident homepage for a growing brand.', tone: 'demo-warm' },
+        { number: '02', type: 'E-COMMERCE', title: 'Product storefront', description: 'A product-first layout built for easy browsing.', tone: 'demo-cool' },
+        { number: '03', type: 'PORTFOLIO', title: 'Creative portfolio', description: 'A bold space to showcase work and ideas.', tone: 'demo-violet' },
+    ]
+    return (
+        <section className="section demo-section" id="demos">
+            <div className="container">
+                <div className="section-heading">
+                    <div><div className="eyebrow">SELECTED DIRECTIONS</div><h2>Ideas into<br /><span>experiences.</span></h2></div>
+                    <p>Explore sample website directions. These are visual concepts to help start a conversation, not client projects or live stores.</p>
+                </div>
+                <div className="demo-grid">
+                    {demos.map((demo) => (
+                        <article className="demo-card" key={demo.number}>
+                            <div className={`demo-preview ${demo.tone}`}>
+                                <div className="demo-browser"><i /><i /><i /><span>preview.shrishubh</span></div>
+                                <div className="demo-preview-content"><small>{demo.type} / CONCEPT</small><strong>{demo.title}</strong><div className="demo-lines"><i /><i /><i /></div><span className="demo-cta">Discover more ↗</span></div>
+                            </div>
+                            <div className="demo-meta"><span>{demo.number} / {demo.type}</span><h3>{demo.title}</h3><p>{demo.description}</p><a href="#contact" className="text-link">Discuss a similar site <ArrowRight size={15} /></a></div>
+                        </article>
+                    ))}
+                </div>
+            </div>
+        </section>
+    )
+}
+
+function PricingCalculator() {
+    const [plan, setPlan] = useState('Professional')
+    const [pages, setPages] = useState('10')
+    const [extras, setExtras] = useState([])
+    const [calculatorPackages, setCalculatorPackages] = useState(plans.map(item => ({
+        name: item.name,
+        price_inr: Number(item.price.replace(/[^0-9]/g, '')),
+        features: item.features,
+        is_active: true,
+    })))
+    const extraPrices = { 'Extra pages (5)': 1500, 'Online store features': 4000, 'Booking or advanced form': 2000, 'Content/SEO support': 1500 }
+
+    useEffect(() => {
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        if (!url || !key || url.includes('YOUR-PROJECT')) return
+        fetch(`${url}/rest/v1/pricing_packages?select=id,name,price_inr,features,is_active&is_active=eq.true&order=price_inr.asc`, {
+            headers: { apikey: key, Authorization: `Bearer ${key}` },
+        }).then(response => {
+            if (!response.ok) throw new Error('Pricing API unavailable')
+            return response.json()
+        }).then(rows => {
+            if (!Array.isArray(rows) || rows.length === 0) return
+            setCalculatorPackages(rows.map(row => ({ ...row, price_inr: Number(row.price_inr), features: Array.isArray(row.features) ? row.features : [] })))
+            setPlan(current => rows.some(row => row.name === current) ? current : rows[0].name)
+        }).catch(() => { /* Keep built-in prices if Supabase is unavailable. */ })
+    }, [])
+
+    const basePrices = Object.fromEntries(calculatorPackages.map(item => [item.name, item.price_inr]))
+    const selectedPackage = calculatorPackages.find(item => item.name === plan)
+    const pageFeature = selectedPackage?.features?.find(feature => /up to \d+(?: website)? pages?/i.test(feature))
+    const pageMatch = pageFeature?.match(/up to (\d+)(?: website)? pages?/i)
+    const includedPages = pageMatch ? Number(pageMatch[1]) : ({ Starter: 5, Professional: 10, 'Business Plus': 15 }[plan] || 5)
+    const toggleExtra = (extra) => setExtras(current => current.includes(extra) ? current.filter(item => item !== extra) : [...current, extra])
+    const extraPageCost = Math.max(0, Math.ceil((Number(pages) - includedPages) / 5)) * 1500
+    const total = (basePrices[plan] ?? 0) + extraPageCost + extras.reduce((sum, extra) => sum + extraPrices[extra], 0)
+    const quoteText = encodeURIComponent(`Hi ShriShubh, I'd like a quote. Package: ${plan}; page range: ${pages}; optional features: ${extras.join(', ') || 'None'}; estimated starting total: ₹${total.toLocaleString('en-IN')}. Please confirm the final scope and price.`)
+    return (
+        <section className="section calculator-section" id="calculator">
+            <div className="container calculator-grid">
+                <div><div className="eyebrow">PLAN YOUR PROJECT</div><h2>Build your<br /><span>estimate.</span></h2><p className="calculator-intro">Choose a starting package and optional features to see an indicative estimate. Final pricing is confirmed after discussing your requirements.</p><div className="calculator-note"><ShieldCheck size={18} /><span>Transparent estimate · No payment collected here</span></div></div>
+                <div className="calculator-card">
+                    <label>Starting package<select value={plan} onChange={e => setPlan(e.target.value)}>{calculatorPackages.map(item => <option key={item.id || item.name}>{item.name}</option>)}</select></label>
+                    <label>Approximate page count<select value={pages} onChange={e => setPages(e.target.value)}><option value="5">Up to 5 pages</option><option value="10">Up to 10 pages</option><option value="15">Up to 15 pages (+₹1,500)</option><option value="20">Up to 20 pages (+₹3,000)</option></select></label>
+                    <div className="calculator-options"><span className="calculator-label">OPTIONAL ADD-ONS</span>{Object.entries(extraPrices).map(([name, price]) => <label className="check-option" key={name}><input type="checkbox" checked={extras.includes(name)} onChange={() => toggleExtra(name)} /><span>{name}</span><small>+₹{price.toLocaleString('en-IN')}</small></label>)}</div>
+                    <div className="estimate-total"><span>Indicative starting estimate</span><strong>₹{total.toLocaleString('en-IN')}</strong></div>
+                    <a className="button calculator-submit" href={`mailto:shrishubh521@gmail.com?subject=ShriShubh%20Website%20Quote&body=${quoteText}`}>Request this quote <ArrowRight size={16} /></a>
+                    <p className="pricing-note">This is a planning estimate, not a binding quote. Hosting, domain, taxes and third-party subscriptions may be extra.</p>
+                </div>
             </div>
         </section>
     )
@@ -406,17 +518,19 @@ function Contact() {
         setError('')
     }
 
-    function submit(event) {
+    async function submit(event) {
         event.preventDefault()
         setSent(false)
         setError('')
 
-        const subject = encodeURIComponent(
-            'New Project Enquiry - ShriShubh'
-        )
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-        const body = encodeURIComponent(
-            `New Project Enquiry - ShriShubh
+        if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('YOUR-PROJECT')) {
+            setError('The enquiry database is not configured yet. Your email application will open so you can send this enquiry instead.')
+            const subject = encodeURIComponent('New Project Enquiry - ShriShubh')
+            const body = encodeURIComponent(
+                `New Project Enquiry - ShriShubh
 
 Name: ${form.name}
 Email: ${form.email}
@@ -425,10 +539,41 @@ Estimated Budget: ${form.budget || 'Not specified'}
 
 Project Details:
 ${form.message}`
-        )
+            )
+            window.location.href = `mailto:shrishubh521@gmail.com?subject=${subject}&body=${body}`
+            return
+        }
 
-        window.location.href =
-            `mailto:shrishubh521@gmail.com?subject=${subject}&body=${body}`
+        try {
+            const response = await fetch(`${supabaseUrl.replace(/\/$/, '')}/rest/v1/enquiries`, {
+                method: 'POST',
+                headers: {
+                    apikey: supabaseKey,
+                    Authorization: `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json',
+                    Prefer: 'return=minimal',
+                },
+                body: JSON.stringify({
+                    name: form.name.trim(),
+                    email: form.email.trim(),
+                    service: form.service,
+                    budget: form.budget || null,
+                    message: form.message.trim(),
+                    status: 'new',
+                }),
+            })
+
+            if (!response.ok) {
+                const details = await response.text()
+                throw new Error(details || `Request failed (${response.status})`)
+            }
+
+            setSent(true)
+            setForm({ name: '', email: '', service: 'Business Website', budget: '', message: '' })
+        } catch (submitError) {
+            console.error('ShriShubh enquiry submission failed:', submitError)
+            setError('We could not save your enquiry just now. Please try again later or email shrishubh521@gmail.com directly.')
+        }
     }
 
     return (
@@ -489,10 +634,9 @@ ${form.message}`
                     <button className="button submit-button" type="submit">
                         Send enquiry <Send size={16} />
                     </button>
-                    <p className="form-privacy">
-                        Clicking Send enquiry opens your email application with your
-                        project details ready. Review the email and press Send to submit it.
-                    </p>
+                    {sent && <p className="form-privacy" role="status">Thank you! Your enquiry has been saved. We'll review your details and get back to you.</p>}
+                    {error && <p className="form-privacy" role="alert">{error}</p>}
+                    {!sent && !error && <p className="form-privacy">Your details are used to respond to your project enquiry. Please don't include passwords or other sensitive information.</p>}
                 </form>
             </div>
         </section>
@@ -505,7 +649,7 @@ function Footer() {
             <div className="container footer-top">
                 <Brand />
                 <p>Professional websites.<br />Transparent pricing. Simple process.</p>
-                <a className="back-top" href="#home">Back to top ↑</a>
+                <div className="footer-actions"><a className="back-top" href="#home">Back to top ↑</a><a className="footer-admin-link" href="#admin">Admin</a></div>
             </div>
             <div className="container footer-bottom">
                 <span>© {new Date().getFullYear()} ShriShubh. All rights reserved.</span>
@@ -528,18 +672,29 @@ function Footer() {
 }
 
 export default function App() {
+    const [theme, setTheme] = useState(() => localStorage.getItem('shrishubh-theme') || 'dark')
+    const [isAdminRoute, setIsAdminRoute] = useState(() => window.location.hash.startsWith('#admin'))
+    useEffect(() => { localStorage.setItem('shrishubh-theme', theme) }, [theme])
+    useEffect(() => {
+        const updateRoute = () => setIsAdminRoute(window.location.hash.startsWith('#admin'))
+        window.addEventListener('hashchange', updateRoute)
+        return () => window.removeEventListener('hashchange', updateRoute)
+    }, [])
+    if (isAdminRoute) return <Admin />
     return (
-        <>
-            <Header />
+        <div className="app-shell" data-theme={theme}>
+            <Header theme={theme} setTheme={setTheme} />
             <main>
                 <Hero />
                 <Services />
+                <DemoGallery />
                 <Pricing />
+                <PricingCalculator />
                 <About />
                 <FAQ />
                 <Contact />
             </main>
             <Footer />
-        </>
+        </div>
     )
 }
