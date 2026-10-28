@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Admin from './Admin.jsx'
 import {
     ArrowRight,
     Check,
@@ -601,7 +602,7 @@ function Footer() {
             <div className="container footer-top">
                 <Brand />
                 <p>Professional websites.<br />Transparent pricing. Simple process.</p>
-                <a className="back-top" href="#home">Back to top ↑</a>
+                <div className="footer-actions"><a className="back-top" href="#home">Back to top ↑</a><a className="footer-admin-link" href="#admin">Admin</a></div>
             </div>
             <div className="container footer-bottom">
                 <span>© {new Date().getFullYear()} ShriShubh. All rights reserved.</span>
@@ -625,7 +626,14 @@ function Footer() {
 
 export default function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('shrishubh-theme') || 'dark')
+    const [isAdminRoute, setIsAdminRoute] = useState(() => window.location.hash.startsWith('#admin'))
     useEffect(() => { localStorage.setItem('shrishubh-theme', theme) }, [theme])
+    useEffect(() => {
+        const updateRoute = () => setIsAdminRoute(window.location.hash.startsWith('#admin'))
+        window.addEventListener('hashchange', updateRoute)
+        return () => window.removeEventListener('hashchange', updateRoute)
+    }, [])
+    if (isAdminRoute) return <Admin />
     return (
         <div className="app-shell" data-theme={theme}>
             <Header theme={theme} setTheme={setTheme} />
