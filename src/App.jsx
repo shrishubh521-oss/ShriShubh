@@ -300,7 +300,7 @@ function Services() {
 function Pricing() {
     const [displayPlans, setDisplayPlans] = useState(plans)
     useEffect(() => {
-        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\\/$/, '')
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
         const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
         if (!url || !key || url.includes('YOUR-PROJECT')) return
         fetch(`${url}/rest/v1/pricing_packages?select=id,name,price_inr,description,features,is_active&is_active=eq.true&order=price_inr.asc`, {
