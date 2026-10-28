@@ -4,6 +4,7 @@ import { ArrowLeft, LogOut, RefreshCw, Search, Mail, ShieldCheck, Inbox, Clock3 
 const API_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
 const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 const STATUSES = ['new', 'contacted', 'in_progress', 'closed', 'spam']
+const PROJECT_STATUSES = ['enquiry', 'planning', 'in_progress', 'review', 'completed', 'on_hold']
 
 async function api(path, token, options = {}) {
     const response = await fetch(`${API_URL}${path}`, {
@@ -35,12 +36,25 @@ export default function Admin() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [enquiries, setEnquiries] = useState([])
+    const [projects, setProjects] = useState([])
+    const [activeView, setActiveView] = useState('enquiries')
+    const [projectForm, setProjectForm] = useState({ client_name: '', client_email: '', project_name: '', status: 'enquiry', progress: 0, due_date: '', notes: '' })
+    const [savingProject, setSavingProject] = useState(false)
     const [selectedId, setSelectedId] = useState(null)
     const [query, setQuery] = useState('')
     const [filter, setFilter] = useState('all')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [notice, setNotice] = useState('')
+
+    const loadProjects = useCallback(async (token) => {
+        try {
+            const data = await api('/rest/v1/projects?select=*&order=created_at.desc&limit=200', token)
+            setProjects(Array.isArray(data) ? data : [])
+        } catch (err) {
+            setError(err.message || 'Could not load projects. Check the Supabase projects table and admin policies.')
+        }
+    }, [])
 
     const loadEnquiries = useCallback(async (token) => {
         setLoading(true)
@@ -56,8 +70,11 @@ export default function Admin() {
     }, [])
 
     useEffect(() => {
-        if (session?.access_token) loadEnquiries(session.access_token)
-    }, [session, loadEnquiries])
+        if (session?.access_token) {
+            loadEnquiries(session.access_token)
+            loadProjects(session.access_token)
+        }
+    }, [session, loadEnquiries, loadProjects])
 
     async function signIn(event) {
         event.preventDefault()
@@ -106,6 +123,49 @@ export default function Admin() {
         setSelectedId(null)
         setNotice('')
         setError('')
+    }
+
+    async function createProject(event) {
+        event.preventDefault()
+        setSavingProject(true)
+        setError('')
+        setNotice('')
+        try {
+            const payload = {
+                client_name: projectForm.client_name.trim(),
+                client_email: projectForm.client_email.trim(),
+                project_name: projectForm.project_name.trim(),
+                status: projectForm.status,
+                progress: Number(projectForm.progress),
+                due_date: projectForm.due_date || null,
+                notes: projectForm.notes.trim() || null,
+            }
+            const created = await api('/rest/v1/projects?select=*', session.access_token, {
+                method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify(payload),
+            })
+            setProjects(current => [...(Array.isArray(created) ? created : []), ...current])
+            setProjectForm({ client_name: '', client_email: '', project_name: '', status: 'enquiry', progress: 0, due_date: '', notes: '' })
+            setNotice('Project created successfully.')
+        } catch (err) {
+            setError(err.message || 'Could not create project.')
+        } finally {
+            setSavingProject(false)
+        }
+    }
+
+    async function updateProject(project, patch) {
+        setError('')
+        setNotice('')
+        const nextPatch = { ...patch, updated_at: new Date().toISOString() }
+        try {
+            await api(`/rest/v1/projects?id=eq.${encodeURIComponent(project.id)}`, session.access_token, {
+                method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(nextPatch),
+            })
+            setProjects(current => current.map(row => row.id === project.id ? { ...row, ...nextPatch } : row))
+            setNotice('Project updated.')
+        } catch (err) {
+            setError(err.message || 'Could not update project.')
+        }
     }
 
     async function updateStatus(item, status) {
@@ -159,8 +219,9 @@ export default function Admin() {
                 <main className="admin-content">
                     <div className="admin-heading-row">
                         <div><div className="admin-eyebrow">SHRISHUBH / WORKSPACE</div><h1>Enquiry inbox</h1><p>Review incoming requests and update their status.</p></div>
-                        <button className="admin-secondary" onClick={() => loadEnquiries(session.access_token)} disabled={loading}><RefreshCw size={15} /> Refresh</button>
+                        <button className="admin-secondary" onClick={() => { loadEnquiries(session.access_token); loadProjects(session.access_token) }} disabled={loading}><RefreshCw size={15} /> Refresh</button>
                     </div>
+                    <nav className="admin-view-tabs" aria-label="Admin sections"><button type="button" className={activeView === 'enquiries' ? 'active' : ''} onClick={() => setActiveView('enquiries')}><Inbox size={15} /> Enquiries</button><button type="button" className={activeView === 'projects' ? 'active' : ''} onClick={() => setActiveView('projects')}><Clock3 size={15} /> Projects</button></nav>
                     <div className="admin-stats">
                         <div><Inbox size={19} /><span>Total enquiries</span><strong>{enquiries.length}</strong></div>
                         <div><Mail size={19} /><span>New enquiries</span><strong>{countNew}</strong></div>
@@ -168,7 +229,7 @@ export default function Admin() {
                     </div>
                     {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
                     {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
-                    <div className="admin-inbox-layout">
+                    {activeView === 'enquiries' ? <div className="admin-inbox-layout">
                         <section className="admin-list-panel">
                             <div className="admin-filters">
                                 <label className="admin-search"><Search size={16} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name, email, service…" /></label>
@@ -197,8 +258,31 @@ export default function Admin() {
                                 </div>
                             )}
                         </section>
-                    </div>
-                </main>
+                    </div> : <section className="admin-projects-view">
+                        <form className="admin-project-form" onSubmit={createProject}>
+                            <div><div className="admin-eyebrow">PROJECT TRACKING</div><h2>Add a project</h2><p>Create a client project and track its status, progress and due date.</p></div>
+                            <div className="admin-project-form-grid">
+                                <label>Client name<input required value={projectForm.client_name} onChange={e => setProjectForm({ ...projectForm, client_name: e.target.value })} /></label>
+                                <label>Client email<input type="email" required value={projectForm.client_email} onChange={e => setProjectForm({ ...projectForm, client_email: e.target.value })} /></label>
+                                <label>Project name<input required value={projectForm.project_name} onChange={e => setProjectForm({ ...projectForm, project_name: e.target.value })} /></label>
+                                <label>Due date<input type="date" value={projectForm.due_date} onChange={e => setProjectForm({ ...projectForm, due_date: e.target.value })} /></label>
+                                <label>Initial status<select value={projectForm.status} onChange={e => setProjectForm({ ...projectForm, status: e.target.value })}>{PROJECT_STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}</select></label>
+                                <label>Progress: {projectForm.progress}%<input type="range" min="0" max="100" step="5" value={projectForm.progress} onChange={e => setProjectForm({ ...projectForm, progress: e.target.value })} /></label>
+                                <label className="admin-project-notes">Notes<textarea rows="2" value={projectForm.notes} onChange={e => setProjectForm({ ...projectForm, notes: e.target.value })} placeholder="Scope, next steps, or internal notes" /></label>
+                            </div>
+                            <button className="admin-primary" type="submit" disabled={savingProject}>{savingProject ? 'Saving project…' : 'Create project'}</button>
+                        </form>
+                        <div className="admin-project-list-heading"><div><h2>Client projects</h2><p>{projects.length} project{projects.length === 1 ? '' : 's'} in your workspace</p></div></div>
+                        {projects.length === 0 ? <div className="admin-empty">No projects yet. Create your first project above.</div> : <div className="admin-project-grid">{projects.map(project => <article className="admin-project-card" key={project.id}>
+                            <div className="admin-project-card-top"><div><div className="admin-eyebrow">{project.client_name}</div><h3>{project.project_name}</h3></div><span className={`admin-status status-${project.status}`}>{project.status.replace('_', ' ')}</span></div>
+                            <a className="admin-project-email" href={`mailto:${encodeURIComponent(project.client_email)}`}>{project.client_email}</a>
+                            <div className="admin-progress-heading"><span>Progress</span><strong>{project.progress}%</strong></div><div className="admin-progress-track"><span style={{ width: `${project.progress}%` }} /></div>
+                            <div className="admin-project-controls"><label>Status<select value={project.status} onChange={e => updateProject(project, { status: e.target.value, ...(e.target.value === 'completed' ? { progress: 100 } : {}) })}>{PROJECT_STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ')}</option>)}</select></label><label>Progress<select value={project.progress} onChange={e => updateProject(project, { progress: Number(e.target.value), ...(Number(e.target.value) === 100 ? { status: 'completed' } : {}) })}>{[0,10,20,30,40,50,60,70,80,90,100].map(n => <option key={n} value={n}>{n}%</option>)}</select></label></div>
+                            <div className="admin-project-meta"><span>Due date</span><strong>{project.due_date || 'Not set'}</strong></div>
+                            {project.notes && <p className="admin-project-note">{project.notes}</p>}
+                        </article>)}</div>}
+                    </section>}
+                    </main>
             )}
         </div>
     )
