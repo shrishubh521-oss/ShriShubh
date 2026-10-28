@@ -368,7 +368,7 @@ function PricingCalculator() {
     const basePrices = { Starter: 3999, Professional: 5999, 'Business Plus': 13999 }
     const extraPrices = { 'Extra pages (5)': 1500, 'Online store features': 4000, 'Booking or advanced form': 2000, 'Content/SEO support': 1500 }
     const toggleExtra = (extra) => setExtras(current => current.includes(extra) ? current.filter(item => item !== extra) : [...current, extra])
-    const total = basePrices[plan] + (pages === '15' ? 1500 : pages === '20' ? 3000 : 0) + extras.reduce((sum, extra) => sum + extraPrices[extra], 0)
+    const includedPages = { Starter: 5, Professional: 10, 'Business Plus': 15 }[plan]\n    const extraPageCost = Math.max(0, (Number(pages) - includedPages) / 5) * 1500\n    const total = basePrices[plan] + extraPageCost + extras.reduce((sum, extra) => sum + extraPrices[extra], 0)
     const quoteText = encodeURIComponent(`Hi ShriShubh, I'd like a quote. Package: ${plan}; page range: ${pages}; optional features: ${extras.join(', ') || 'None'}; estimated starting total: ₹${total.toLocaleString('en-IN')}. Please confirm the final scope and price.`)
     return (
         <section className="section calculator-section" id="calculator">
