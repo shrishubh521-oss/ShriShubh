@@ -425,3 +425,39 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 .footer-admin-link:hover { color:var(--gold); }
 @media(max-width:900px) { .admin-inbox-layout { grid-template-columns:1fr; } .admin-detail-empty { min-height:230px; } }
 @media(max-width:600px) { .admin-content { width:calc(100% - 28px); padding-top:28px; } .admin-stats { grid-template-columns:1fr; } .admin-heading-row { align-items:flex-start; } .admin-filters { grid-template-columns:1fr; } .admin-enquiry-head { align-items:flex-start; flex-direction:column; gap:5px; } .admin-detail { padding:17px; } .admin-brand { font-size:8px; letter-spacing:1px; } .admin-topbar { padding:13px 15px; } }
+
+
+/* Admin project tracking */
+.admin-view-tabs { display:flex; gap:8px; margin:22px 0 6px; border-bottom:1px solid #2b2b2b; }
+.admin-view-tabs button { display:inline-flex; align-items:center; gap:8px; padding:12px 16px; border:0; border-bottom:2px solid transparent; color:#999; background:transparent; font-size:12px; cursor:pointer; }
+.admin-view-tabs button.active { color:#f5c400; border-bottom-color:#f5c400; }
+.admin-projects-view { display:grid; gap:24px; }
+.admin-project-form { padding:22px; border:1px solid #2d2d2d; border-radius:9px; background:#101010; }
+.admin-project-form h2,.admin-project-list-heading h2 { margin:8px 0; font-size:20px; letter-spacing:-.5px; }
+.admin-project-form p,.admin-project-list-heading p { margin:0; color:#999; font-size:12px; line-height:1.7; }
+.admin-project-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; margin-top:22px; }
+.admin-project-form-grid label,.admin-project-controls label { display:grid; gap:8px; color:#ccc; font-size:11px; }
+.admin-project-form-grid input,.admin-project-form-grid select,.admin-project-form-grid textarea,.admin-project-controls select { width:100%; min-width:0; padding:11px; border:1px solid #353535; border-radius:6px; outline:none; color:#f5f5f1; background:#090909; }
+.admin-project-form-grid input:focus,.admin-project-form-grid select:focus,.admin-project-form-grid textarea:focus,.admin-project-controls select:focus { border-color:#d6b42a; }
+.admin-project-form-grid input[type=range] { padding:5px 0; accent-color:#f5c400; }
+.admin-project-notes { grid-column:1/-1; }
+.admin-project-form>.admin-primary { width:auto; min-width:160px; margin-top:18px; }
+.admin-project-list-heading { display:flex; align-items:center; justify-content:space-between; }
+.admin-project-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.admin-project-card { min-width:0; padding:20px; border:1px solid #2d2d2d; border-radius:9px; background:#101010; }
+.admin-project-card-top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.admin-project-card-top h3 { margin:8px 0 5px; font-size:18px; overflow-wrap:anywhere; }
+.admin-project-card-top .admin-status { flex-shrink:0; margin-top:0; }
+.admin-project-email { display:inline-block; margin:7px 0 18px; color:#f5c400; font-size:11px; overflow-wrap:anywhere; }
+.admin-progress-heading { display:flex; justify-content:space-between; margin-bottom:8px; color:#a5a59e; font-size:10px; }
+.admin-progress-heading strong { color:#eee; }
+.admin-progress-track { height:6px; overflow:hidden; border-radius:99px; background:#2b2b2b; }
+.admin-progress-track span { display:block; height:100%; border-radius:99px; background:#f5c400; transition:width .2s ease; }
+.admin-project-controls { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:18px; }
+.admin-project-meta { display:flex; justify-content:space-between; gap:12px; margin-top:18px; padding-top:14px; border-top:1px solid #292929; color:#888; font-size:10px; }
+.admin-project-meta strong { color:#d7d7d1; font-weight:500; }
+.admin-project-note { margin:14px 0 0; padding:12px; border-radius:6px; background:#0a0a0a; color:#aaa; font-size:11px; line-height:1.7; white-space:pre-wrap; overflow-wrap:anywhere; }
+.status-planning,.status-review { color:#d2b3ff; border-color:#4b326b; background:#1b1227; }
+.status-completed { color:#9ee0b0; border-color:#2d5a39; background:#102016; }
+.status-on_hold { color:#ffce9a; border-color:#69481e; background:#281b0d; }
+@media(max-width:700px) { .admin-project-grid { grid-template-columns:1fr; } .admin-project-form-grid { grid-template-columns:1fr; } .admin-project-notes { grid-column:auto; } .admin-project-form { padding:17px; } .admin-project-card { padding:17px; } }
