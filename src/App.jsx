@@ -387,19 +387,45 @@ function PricingCalculator() {
     const [plan, setPlan] = useState('Professional')
     const [pages, setPages] = useState('10')
     const [extras, setExtras] = useState([])
-    const basePrices = { Starter: 3999, Professional: 5999, 'Business Plus': 13999 }
+    const [calculatorPackages, setCalculatorPackages] = useState(plans.map(item => ({
+        name: item.name,
+        price_inr: Number(item.price.replace(/[^0-9]/g, '')),
+        features: item.features,
+        is_active: true,
+    })))
     const extraPrices = { 'Extra pages (5)': 1500, 'Online store features': 4000, 'Booking or advanced form': 2000, 'Content/SEO support': 1500 }
+
+    useEffect(() => {
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        if (!url || !key || url.includes('YOUR-PROJECT')) return
+        fetch(`${url}/rest/v1/pricing_packages?select=id,name,price_inr,features,is_active&is_active=eq.true&order=price_inr.asc`, {
+            headers: { apikey: key, Authorization: `Bearer ${key}` },
+        }).then(response => {
+            if (!response.ok) throw new Error('Pricing API unavailable')
+            return response.json()
+        }).then(rows => {
+            if (!Array.isArray(rows) || rows.length === 0) return
+            setCalculatorPackages(rows.map(row => ({ ...row, price_inr: Number(row.price_inr), features: Array.isArray(row.features) ? row.features : [] })))
+            setPlan(current => rows.some(row => row.name === current) ? current : rows[0].name)
+        }).catch(() => { /* Keep built-in prices if Supabase is unavailable. */ })
+    }, [])
+
+    const basePrices = Object.fromEntries(calculatorPackages.map(item => [item.name, item.price_inr]))
+    const selectedPackage = calculatorPackages.find(item => item.name === plan)
+    const pageFeature = selectedPackage?.features?.find(feature => /up to \\d+ pages?/i.test(feature))
+    const pageMatch = pageFeature?.match(/up to (\\d+) pages?/i)
+    const includedPages = pageMatch ? Number(pageMatch[1]) : ({ Starter: 5, Professional: 10, 'Business Plus': 15 }[plan] || 5)
     const toggleExtra = (extra) => setExtras(current => current.includes(extra) ? current.filter(item => item !== extra) : [...current, extra])
-    const includedPages = { Starter: 5, Professional: 10, 'Business Plus': 15 }[plan]
-    const extraPageCost = Math.max(0, (Number(pages) - includedPages) / 5) * 1500
-    const total = basePrices[plan] + extraPageCost + extras.reduce((sum, extra) => sum + extraPrices[extra], 0)
+    const extraPageCost = Math.max(0, Math.ceil((Number(pages) - includedPages) / 5)) * 1500
+    const total = (basePrices[plan] ?? 0) + extraPageCost + extras.reduce((sum, extra) => sum + extraPrices[extra], 0)
     const quoteText = encodeURIComponent(`Hi ShriShubh, I'd like a quote. Package: ${plan}; page range: ${pages}; optional features: ${extras.join(', ') || 'None'}; estimated starting total: ₹${total.toLocaleString('en-IN')}. Please confirm the final scope and price.`)
     return (
         <section className="section calculator-section" id="calculator">
             <div className="container calculator-grid">
                 <div><div className="eyebrow">PLAN YOUR PROJECT</div><h2>Build your<br /><span>estimate.</span></h2><p className="calculator-intro">Choose a starting package and optional features to see an indicative estimate. Final pricing is confirmed after discussing your requirements.</p><div className="calculator-note"><ShieldCheck size={18} /><span>Transparent estimate · No payment collected here</span></div></div>
                 <div className="calculator-card">
-                    <label>Starting package<select value={plan} onChange={e => setPlan(e.target.value)}>{Object.keys(basePrices).map(name => <option key={name}>{name}</option>)}</select></label>
+                    <label>Starting package<select value={plan} onChange={e => setPlan(e.target.value)}>{calculatorPackages.map(item => <option key={item.id || item.name}>{item.name}</option>)}</select></label>
                     <label>Approximate page count<select value={pages} onChange={e => setPages(e.target.value)}><option value="5">Up to 5 pages</option><option value="10">Up to 10 pages</option><option value="15">Up to 15 pages (+₹1,500)</option><option value="20">Up to 20 pages (+₹3,000)</option></select></label>
                     <div className="calculator-options"><span className="calculator-label">OPTIONAL ADD-ONS</span>{Object.entries(extraPrices).map(([name, price]) => <label className="check-option" key={name}><input type="checkbox" checked={extras.includes(name)} onChange={() => toggleExtra(name)} /><span>{name}</span><small>+₹{price.toLocaleString('en-IN')}</small></label>)}</div>
                     <div className="estimate-total"><span>Indicative starting estimate</span><strong>₹{total.toLocaleString('en-IN')}</strong></div>
