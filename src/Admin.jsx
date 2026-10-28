@@ -1,0 +1,205 @@
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { ArrowLeft, LogOut, RefreshCw, Search, Mail, ShieldCheck, Inbox, Clock3 } from 'lucide-react'
+
+const API_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
+const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+const STATUSES = ['new', 'contacted', 'in_progress', 'closed', 'spam']
+
+async function api(path, token, options = {}) {
+    const response = await fetch(`${API_URL}${path}`, {
+        ...options,
+        headers: {
+            apikey: API_KEY,
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            ...(options.headers || {}),
+        },
+    })
+    if (!response.ok) {
+        const details = await response.text()
+        throw new Error(details || `Request failed (${response.status})`)
+    }
+    if (response.status === 204) return null
+    const text = await response.text()
+    return text ? JSON.parse(text) : null
+}
+
+function dateLabel(value) {
+    return new Date(value).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+}
+
+export default function Admin() {
+    const [session, setSession] = useState(() => {
+        try { return JSON.parse(sessionStorage.getItem('shrishubh-admin-session') || 'null') } catch { return null }
+    })
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [enquiries, setEnquiries] = useState([])
+    const [selectedId, setSelectedId] = useState(null)
+    const [query, setQuery] = useState('')
+    const [filter, setFilter] = useState('all')
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState('')
+    const [notice, setNotice] = useState('')
+
+    const loadEnquiries = useCallback(async (token) => {
+        setLoading(true)
+        setError('')
+        try {
+            const data = await api('/rest/v1/enquiries?select=*&order=created_at.desc&limit=200', token)
+            setEnquiries(Array.isArray(data) ? data : [])
+        } catch (err) {
+            setError(err.message || 'Could not load enquiries. Check the Supabase policies and connection.')
+        } finally {
+            setLoading(false)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (session?.access_token) loadEnquiries(session.access_token)
+    }, [session, loadEnquiries])
+
+    async function signIn(event) {
+        event.preventDefault()
+        setLoading(true)
+        setError('')
+        setNotice('')
+        if (!API_URL || !API_KEY || API_URL.includes('YOUR-PROJECT')) {
+            setError('Supabase is not configured. Add the Supabase URL and publishable/anon key to the GitHub Actions repository variables.')
+            setLoading(false)
+            return
+        }
+        try {
+            const response = await fetch(`${API_URL}/auth/v1/token?grant_type=password`, {
+                method: 'POST',
+                headers: { apikey: API_KEY, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email.trim(), password }),
+            })
+            const result = await response.json()
+            if (!response.ok) throw new Error(result.msg || result.message || result.error_description || 'Sign-in failed. Check your email and password.')
+            const token = result.access_token
+            const user = result.user
+            const admins = await api(`/rest/v1/admin_users?select=user_id&user_id=eq.${encodeURIComponent(user.id)}`, token)
+            if (!Array.isArray(admins) || admins.length === 0) {
+                await fetch(`${API_URL}/auth/v1/logout`, { method: 'POST', headers: { apikey: API_KEY, Authorization: `Bearer ${token}` } })
+                throw new Error('This account is not on the ShriShubh admin allowlist. Ask the project owner to verify the admin_users record and RLS policy.')
+            }
+            const nextSession = { access_token: token, refresh_token: result.refresh_token, user }
+            sessionStorage.setItem('shrishubh-admin-session', JSON.stringify(nextSession))
+            setSession(nextSession)
+            setPassword('')
+            setNotice('Signed in securely.')
+        } catch (err) {
+            setError(err.message || 'Could not sign in.')
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    async function signOut() {
+        if (session?.access_token && API_URL) {
+            try { await fetch(`${API_URL}/auth/v1/logout`, { method: 'POST', headers: { apikey: API_KEY, Authorization: `Bearer ${session.access_token}` } }) } catch { /* local sign-out still proceeds */ }
+        }
+        sessionStorage.removeItem('shrishubh-admin-session')
+        setSession(null)
+        setEnquiries([])
+        setSelectedId(null)
+        setNotice('')
+        setError('')
+    }
+
+    async function updateStatus(item, status) {
+        setError('')
+        setNotice('')
+        try {
+            await api(`/rest/v1/enquiries?id=eq.${encodeURIComponent(item.id)}`, session.access_token, {
+                method: 'PATCH',
+                headers: { Prefer: 'return=minimal' },
+                body: JSON.stringify({ status, updated_at: new Date().toISOString() }),
+            })
+            setEnquiries(current => current.map(row => row.id === item.id ? { ...row, status, updated_at: new Date().toISOString() } : row))
+            setNotice('Enquiry status updated.')
+        } catch (err) {
+            setError(err.message || 'Could not update enquiry status.')
+        }
+    }
+
+    const filtered = useMemo(() => enquiries.filter(item => {
+        const matchesFilter = filter === 'all' || item.status === filter
+        const needle = query.trim().toLowerCase()
+        const matchesQuery = !needle || [item.name, item.email, item.service, item.message].some(value => String(value || '').toLowerCase().includes(needle))
+        return matchesFilter && matchesQuery
+    }), [enquiries, filter, query])
+    const selected = filtered.find(item => item.id === selectedId) || enquiries.find(item => item.id === selectedId) || null
+    const countNew = enquiries.filter(item => item.status === 'new').length
+
+    return (
+        <div className="admin-shell">
+            <header className="admin-topbar">
+                <a className="admin-back" href="#home" aria-label="Back to ShriShubh homepage"><ArrowLeft size={17} /> <span>ShriShubh</span></a>
+                <div className="admin-brand"><ShieldCheck size={18} /> ADMIN CONSOLE</div>
+                {session && <button className="admin-logout" onClick={signOut}><LogOut size={16} /> Sign out</button>}
+            </header>
+
+            {!session ? (
+                <main className="admin-login-wrap">
+                    <form className="admin-login-card" onSubmit={signIn}>
+                        <div className="admin-icon"><ShieldCheck size={25} /></div>
+                        <div className="admin-eyebrow">RESTRICTED ACCESS</div>
+                        <h1>Admin sign in</h1>
+                        <p>Use the email and password for the admin account you created in Supabase. Only accounts on the configured admin allowlist can open enquiry records.</p>
+                        {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
+                        <label>Email address<input type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} required /></label>
+                        <label>Password<input type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required /></label>
+                        <button className="admin-primary" type="submit" disabled={loading}>{loading ? 'Checking access…' : 'Sign in securely'}</button>
+                        <small>Authentication and access checks are handled by Supabase. Do not share your password or add secret keys to the website.</small>
+                    </form>
+                </main>
+            ) : (
+                <main className="admin-content">
+                    <div className="admin-heading-row">
+                        <div><div className="admin-eyebrow">SHRISHUBH / WORKSPACE</div><h1>Enquiry inbox</h1><p>Review incoming requests and update their status.</p></div>
+                        <button className="admin-secondary" onClick={() => loadEnquiries(session.access_token)} disabled={loading}><RefreshCw size={15} /> Refresh</button>
+                    </div>
+                    <div className="admin-stats">
+                        <div><Inbox size={19} /><span>Total enquiries</span><strong>{enquiries.length}</strong></div>
+                        <div><Mail size={19} /><span>New enquiries</span><strong>{countNew}</strong></div>
+                        <div><Clock3 size={19} /><span>In progress</span><strong>{enquiries.filter(item => item.status === 'in_progress').length}</strong></div>
+                    </div>
+                    {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
+                    {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
+                    <div className="admin-inbox-layout">
+                        <section className="admin-list-panel">
+                            <div className="admin-filters">
+                                <label className="admin-search"><Search size={16} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name, email, service…" /></label>
+                                <select aria-label="Filter by status" value={filter} onChange={e => setFilter(e.target.value)}><option value="all">All statuses</option>{STATUSES.map(status => <option key={status} value={status}>{status.replace('_', ' ')}</option>)}</select>
+                            </div>
+                            {loading && enquiries.length === 0 ? <p className="admin-empty">Loading enquiries…</p> : filtered.length === 0 ? <p className="admin-empty">No enquiries match this view yet.</p> : (
+                                <div className="admin-enquiry-list">{filtered.map(item => (
+                                    <button type="button" className={selectedId === item.id ? 'admin-enquiry-row selected' : 'admin-enquiry-row'} key={item.id} onClick={() => setSelectedId(item.id)}>
+                                        <span className="admin-enquiry-head"><strong>{item.name}</strong><small>{dateLabel(item.created_at)}</small></span>
+                                        <span className="admin-enquiry-service">{item.service}</span>
+                                        <span className="admin-enquiry-preview">{item.message}</span>
+                                        <span className={`admin-status status-${item.status}`}>{item.status.replace('_', ' ')}</span>
+                                    </button>
+                                ))}</div>
+                            )}
+                        </section>
+                        <section className="admin-detail-panel">
+                            {!selected ? <div className="admin-detail-empty"><Mail size={26} /><h2>Select an enquiry</h2><p>Choose a message from the list to see its details.</p></div> : (
+                                <div className="admin-detail">
+                                    <div className="admin-detail-title"><div><div className="admin-eyebrow">ENQUIRY DETAILS</div><h2>{selected.name}</h2><p>{dateLabel(selected.created_at)}</p></div><span className={`admin-status status-${selected.status}`}>{selected.status.replace('_', ' ')}</span></div>
+                                    <dl className="admin-detail-fields"><div><dt>Email</dt><dd><a href={`mailto:${encodeURIComponent(selected.email)}`}>{selected.email}</a></dd></div><div><dt>Service</dt><dd>{selected.service}</dd></div><div><dt>Budget</dt><dd>{selected.budget || 'Not specified'}</dd></div></dl>
+                                    <div className="admin-message"><span>PROJECT MESSAGE</span><p>{selected.message}</p></div>
+                                    <label className="admin-status-control">Update status<select value={selected.status} onChange={event => updateStatus(selected, event.target.value)}>{STATUSES.map(status => <option key={status} value={status}>{status.replace('_', ' ')}</option>)}</select></label>
+                                    <a className="admin-primary admin-reply-link" href={`mailto:${encodeURIComponent(selected.email)}?subject=${encodeURIComponent('Re: Your ShriShubh enquiry')}&body=${encodeURIComponent(`Hello ${selected.name},\n\nThank you for contacting ShriShubh about ${selected.service}.\n\n\nRegards,\nShriShubh\nshrishubh521@gmail.com`)}`}><Mail size={16} /> Reply by email</a>
+                                    <p className="admin-help-note">This opens your email app with a draft. It does not send mail automatically or track delivery.</p>
+                                </div>
+                            )}
+                        </section>
+                    </div>
+                </main>
+            )}
+        </div>
+    )
+}
