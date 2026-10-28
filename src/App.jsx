@@ -298,6 +298,27 @@ function Services() {
 }
 
 function Pricing() {
+    const [displayPlans, setDisplayPlans] = useState(plans)
+    useEffect(() => {
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\\/$/, '')
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        if (!url || !key || url.includes('YOUR-PROJECT')) return
+        fetch(`${url}/rest/v1/pricing_packages?select=id,name,price_inr,description,features,is_active&is_active=eq.true&order=price_inr.asc`, {
+            headers: { apikey: key, Authorization: `Bearer ${key}` },
+        }).then(response => {
+            if (!response.ok) throw new Error('Pricing API unavailable')
+            return response.json()
+        }).then(rows => {
+            if (!Array.isArray(rows) || rows.length === 0) return
+            setDisplayPlans(rows.map(row => ({
+                name: row.name,
+                price: `₹${Number(row.price_inr).toLocaleString('en-IN')}`,
+                description: row.description || '',
+                features: Array.isArray(row.features) ? row.features : [],
+                popular: row.id === 'professional',
+            })))
+        }).catch(() => { /* Keep the built-in package display if Supabase is unavailable. */ })
+    }, [])
     return (
         <section className="section pricing-section" id="pricing">
             <div className="container">
@@ -309,7 +330,7 @@ function Pricing() {
                     <p>Choose a starting point. We'll confirm the scope and final price before work begins.</p>
                 </div>
                 <div className="pricing-grid">
-                    {plans.map((plan) => (
+                    {displayPlans.map((plan) => (
                         <article className={plan.popular ? 'price-card price-featured' : 'price-card'} key={plan.name}>
                             {plan.popular && <div className="popular-label"><Star size={13} /> MOST POPULAR</div>}
                             <div className="plan-name">{plan.name}</div>
