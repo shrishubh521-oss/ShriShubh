@@ -468,17 +468,19 @@ function Contact() {
         setError('')
     }
 
-    function submit(event) {
+    async function submit(event) {
         event.preventDefault()
         setSent(false)
         setError('')
 
-        const subject = encodeURIComponent(
-            'New Project Enquiry - ShriShubh'
-        )
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+        const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-        const body = encodeURIComponent(
-            `New Project Enquiry - ShriShubh
+        if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('YOUR-PROJECT')) {
+            setError('The enquiry database is not configured yet. Your email application will open so you can send this enquiry instead.')
+            const subject = encodeURIComponent('New Project Enquiry - ShriShubh')
+            const body = encodeURIComponent(
+                `New Project Enquiry - ShriShubh
 
 Name: ${form.name}
 Email: ${form.email}
@@ -487,10 +489,41 @@ Estimated Budget: ${form.budget || 'Not specified'}
 
 Project Details:
 ${form.message}`
-        )
+            )
+            window.location.href = `mailto:shrishubh521@gmail.com?subject=${subject}&body=${body}`
+            return
+        }
 
-        window.location.href =
-            `mailto:shrishubh521@gmail.com?subject=${subject}&body=${body}`
+        try {
+            const response = await fetch(`${supabaseUrl.replace(/\\/$/, '')}/rest/v1/enquiries`, {
+                method: 'POST',
+                headers: {
+                    apikey: supabaseKey,
+                    Authorization: `Bearer ${supabaseKey}`,
+                    'Content-Type': 'application/json',
+                    Prefer: 'return=minimal',
+                },
+                body: JSON.stringify({
+                    name: form.name.trim(),
+                    email: form.email.trim(),
+                    service: form.service,
+                    budget: form.budget || null,
+                    message: form.message.trim(),
+                    status: 'new',
+                }),
+            })
+
+            if (!response.ok) {
+                const details = await response.text()
+                throw new Error(details || `Request failed (${response.status})`)
+            }
+
+            setSent(true)
+            setForm({ name: '', email: '', service: 'Business Website', budget: '', message: '' })
+        } catch (submitError) {
+            console.error('ShriShubh enquiry submission failed:', submitError)
+            setError('We could not save your enquiry just now. Please try again later or email shrishubh521@gmail.com directly.')
+        }
     }
 
     return (
@@ -551,10 +584,9 @@ ${form.message}`
                     <button className="button submit-button" type="submit">
                         Send enquiry <Send size={16} />
                     </button>
-                    <p className="form-privacy">
-                        Clicking Send enquiry opens your email application with your
-                        project details ready. Review the email and press Send to submit it.
-                    </p>
+                    {sent && <p className="form-privacy" role="status">Thank you! Your enquiry has been saved. We'll review your details and get back to you.</p>}
+                    {error && <p className="form-privacy" role="alert">{error}</p>}
+                    {!sent && !error && <p className="form-privacy">Your details are used to respond to your project enquiry. Please don't include passwords or other sensitive information.</p>}
                 </form>
             </div>
         </section>
