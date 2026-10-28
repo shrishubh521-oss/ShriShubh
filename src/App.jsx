@@ -413,8 +413,8 @@ function PricingCalculator() {
 
     const basePrices = Object.fromEntries(calculatorPackages.map(item => [item.name, item.price_inr]))
     const selectedPackage = calculatorPackages.find(item => item.name === plan)
-    const pageFeature = selectedPackage?.features?.find(feature => /up to \\d+ pages?/i.test(feature))
-    const pageMatch = pageFeature?.match(/up to (\\d+) pages?/i)
+    const pageFeature = selectedPackage?.features?.find(feature => /up to \d+(?: website)? pages?/i.test(feature))
+    const pageMatch = pageFeature?.match(/up to (\d+)(?: website)? pages?/i)
     const includedPages = pageMatch ? Number(pageMatch[1]) : ({ Starter: 5, Professional: 10, 'Business Plus': 15 }[plan] || 5)
     const toggleExtra = (extra) => setExtras(current => current.includes(extra) ? current.filter(item => item !== extra) : [...current, extra])
     const extraPageCost = Math.max(0, Math.ceil((Number(pages) - includedPages) / 5)) * 1500
