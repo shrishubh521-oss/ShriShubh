@@ -5,6 +5,11 @@ const API_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
 const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 const STATUSES = ['new', 'contacted', 'in_progress', 'closed', 'spam']
 const PROJECT_STATUSES = ['enquiry', 'planning', 'in_progress', 'review', 'completed', 'on_hold']
+const DEFAULT_PACKAGES = [
+    { id: 'starter', name: 'Starter', price_inr: 3999, description: 'For individuals and small businesses getting online.', features: ['Up to 5 website pages', 'Mobile-responsive design', 'Contact form layout', 'Basic on-page SEO setup', 'Social media links'], is_active: true },
+    { id: 'professional', name: 'Professional', price_inr: 5999, description: 'For growing businesses ready for a stronger online presence.', features: ['Up to 10 website pages', 'Custom premium design', 'Responsive on all devices', 'Contact and enquiry forms', 'SEO-ready page structure', 'Performance optimization'], is_active: true },
+    { id: 'business-plus', name: 'Business Plus', price_inr: 13999, description: 'For businesses that need more features and flexibility.', features: ['Up to 15 website pages', 'Advanced custom sections', 'CMS or product catalogue setup', 'Analytics integration setup', 'Advanced enquiry experience', 'Priority launch support'], is_active: true },
+]
 
 async function api(path, token, options = {}) {
     const response = await fetch(`${API_URL}${path}`, {
@@ -37,6 +42,8 @@ export default function Admin() {
     const [password, setPassword] = useState('')
     const [enquiries, setEnquiries] = useState([])
     const [projects, setProjects] = useState([])
+    const [packages, setPackages] = useState(DEFAULT_PACKAGES)
+    const [savingPackageId, setSavingPackageId] = useState('')
     const [activeView, setActiveView] = useState('enquiries')
     const [projectForm, setProjectForm] = useState({ client_name: '', client_email: '', project_name: '', status: 'enquiry', progress: 0, due_date: '', notes: '' })
     const [savingProject, setSavingProject] = useState(false)
@@ -46,6 +53,15 @@ export default function Admin() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
     const [notice, setNotice] = useState('')
+
+    const loadPackages = useCallback(async (token) => {
+        try {
+            const data = await api('/rest/v1/pricing_packages?select=*&order=price_inr.asc', token)
+            if (Array.isArray(data) && data.length) setPackages(data.map(row => ({ ...row, features: Array.isArray(row.features) ? row.features : [] })))
+        } catch (err) {
+            setError(err.message || 'Could not load pricing packages. Check the pricing_packages table and policies.')
+        }
+    }, [])
 
     const loadProjects = useCallback(async (token) => {
         try {
@@ -73,8 +89,9 @@ export default function Admin() {
         if (session?.access_token) {
             loadEnquiries(session.access_token)
             loadProjects(session.access_token)
+            loadPackages(session.access_token)
         }
-    }, [session, loadEnquiries, loadProjects])
+    }, [session, loadEnquiries, loadProjects, loadPackages])
 
     async function signIn(event) {
         event.preventDefault()
@@ -153,6 +170,27 @@ export default function Admin() {
         }
     }
 
+    async function savePackage(pkg) {
+        setSavingPackageId(pkg.id)
+        setError('')
+        setNotice('')
+        try {
+            const payload = { name: pkg.name.trim(), price_inr: Number(pkg.price_inr), description: pkg.description.trim(), features: pkg.features, is_active: pkg.is_active, updated_at: new Date().toISOString() }
+            await api(`/rest/v1/pricing_packages?id=eq.${encodeURIComponent(pkg.id)}`, session.access_token, {
+                method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify(payload),
+            })
+            setNotice(`${pkg.name} pricing saved. The public site will show the new price after the pricing table is configured and the website is deployed.`)
+        } catch (err) {
+            setError(err.message || 'Could not save pricing. Check the pricing_packages table and admin policies.')
+        } finally {
+            setSavingPackageId('')
+        }
+    }
+
+    function updatePackage(id, patch) {
+        setPackages(current => current.map(pkg => pkg.id === id ? { ...pkg, ...patch } : pkg))
+    }
+
     async function updateProject(project, patch) {
         setError('')
         setNotice('')
@@ -221,7 +259,7 @@ export default function Admin() {
                         <div><div className="admin-eyebrow">SHRISHUBH / WORKSPACE</div><h1>Enquiry inbox</h1><p>Review incoming requests and update their status.</p></div>
                         <button className="admin-secondary" onClick={() => { loadEnquiries(session.access_token); loadProjects(session.access_token) }} disabled={loading}><RefreshCw size={15} /> Refresh</button>
                     </div>
-                    <nav className="admin-view-tabs" aria-label="Admin sections"><button type="button" className={activeView === 'enquiries' ? 'active' : ''} onClick={() => setActiveView('enquiries')}><Inbox size={15} /> Enquiries</button><button type="button" className={activeView === 'projects' ? 'active' : ''} onClick={() => setActiveView('projects')}><Clock3 size={15} /> Projects</button></nav>
+                    <nav className="admin-view-tabs" aria-label="Admin sections"><button type="button" className={activeView === 'enquiries' ? 'active' : ''} onClick={() => setActiveView('enquiries')}><Inbox size={15} /> Enquiries</button><button type="button" className={activeView === 'projects' ? 'active' : ''} onClick={() => setActiveView('projects')}><Clock3 size={15} /> Projects</button><button type="button" className={activeView === 'pricing' ? 'active' : ''} onClick={() => setActiveView('pricing')}><ShieldCheck size={15} /> Pricing</button></nav>
                     <div className="admin-stats">
                         <div><Inbox size={19} /><span>Total enquiries</span><strong>{enquiries.length}</strong></div>
                         <div><Mail size={19} /><span>New enquiries</span><strong>{countNew}</strong></div>
@@ -258,7 +296,7 @@ export default function Admin() {
                                 </div>
                             )}
                         </section>
-                    </div> : <section className="admin-projects-view">
+                    </div> : activeView === 'projects' ? <section className="admin-projects-view">
                         <form className="admin-project-form" onSubmit={createProject}>
                             <div><div className="admin-eyebrow">PROJECT TRACKING</div><h2>Add a project</h2><p>Create a client project and track its status, progress and due date.</p></div>
                             <div className="admin-project-form-grid">
@@ -281,6 +319,16 @@ export default function Admin() {
                             <div className="admin-project-meta"><span>Due date</span><strong>{project.due_date || 'Not set'}</strong></div>
                             {project.notes && <p className="admin-project-note">{project.notes}</p>}
                         </article>)}</div>}
+                    </section> : <section className="admin-pricing-view">
+                        <div className="admin-pricing-intro"><div className="admin-eyebrow">PACKAGE MANAGEMENT</div><h2>Edit website pricing</h2><p>Update package names, starting prices, descriptions and included features. Saving writes to Supabase.</p></div>
+                        <div className="admin-pricing-grid">{packages.map(pkg => <form className="admin-pricing-card" key={pkg.id} onSubmit={event => { event.preventDefault(); savePackage(pkg) }}>
+                            <div className="admin-pricing-card-heading"><div><span className="admin-eyebrow">PACKAGE / {pkg.id}</span><h3>{pkg.name}</h3></div><label className="admin-active-toggle"><input type="checkbox" checked={Boolean(pkg.is_active)} onChange={e => updatePackage(pkg.id, { is_active: e.target.checked })} /> Visible</label></div>
+                            <label>Package name<input required maxLength="60" value={pkg.name} onChange={e => updatePackage(pkg.id, { name: e.target.value })} /></label>
+                            <label>Starting price (₹)<input type="number" min="0" max="10000000" step="1" required value={pkg.price_inr} onChange={e => updatePackage(pkg.id, { price_inr: e.target.value })} /></label>
+                            <label>Description<textarea rows="3" maxLength="300" value={pkg.description} onChange={e => updatePackage(pkg.id, { description: e.target.value })} /></label>
+                            <label>Included features <textarea rows="5" value={pkg.features.join('\n')} onChange={e => updatePackage(pkg.id, { features: e.target.value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 20) })} /><small>One feature per line, up to 20 features.</small></label>
+                            <button className="admin-primary" type="submit" disabled={savingPackageId === pkg.id}>{savingPackageId === pkg.id ? 'Saving…' : 'Save package'}</button>
+                        </form>)}</div>
                     </section>}
                     </main>
             )}
