@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
     ArrowRight,
     Check,
@@ -15,6 +15,8 @@ import {
     MessageCircle,
     ChevronDown,
     Send,
+    Sun,
+    Moon,
 } from 'lucide-react'
 
 const services = [
@@ -153,7 +155,7 @@ function Brand() {
     )
 }
 
-function Header() {
+function Header({ theme, setTheme }) {
     const [open, setOpen] = useState(false)
     const links = [
         ['Services', '#services'],
@@ -176,6 +178,10 @@ function Header() {
                         Get a quote <ArrowRight size={15} />
                     </a>
                 </nav>
+                <button className="theme-toggle" type="button" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}>
+                    {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
+                    <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
+                </button>
                 <button
                     className="mobile-menu-button"
                     type="button"
@@ -320,6 +326,62 @@ function Pricing() {
                     ))}
                 </div>
                 <p className="pricing-note">Prices are starting estimates, not a final quote. Domain, hosting, paid plugins and third-party services may cost extra.</p>
+            </div>
+        </section>
+    )
+}
+
+
+function DemoGallery() {
+    const demos = [
+        { number: '01', type: 'BUSINESS', title: 'Modern business site', description: 'A clear, confident homepage for a growing brand.', tone: 'demo-warm' },
+        { number: '02', type: 'E-COMMERCE', title: 'Product storefront', description: 'A product-first layout built for easy browsing.', tone: 'demo-cool' },
+        { number: '03', type: 'PORTFOLIO', title: 'Creative portfolio', description: 'A bold space to showcase work and ideas.', tone: 'demo-violet' },
+    ]
+    return (
+        <section className="section demo-section" id="demos">
+            <div className="container">
+                <div className="section-heading">
+                    <div><div className="eyebrow">SELECTED DIRECTIONS</div><h2>Ideas into<br /><span>experiences.</span></h2></div>
+                    <p>Explore sample website directions. These are visual concepts to help start a conversation, not client projects or live stores.</p>
+                </div>
+                <div className="demo-grid">
+                    {demos.map((demo) => (
+                        <article className="demo-card" key={demo.number}>
+                            <div className={`demo-preview ${demo.tone}`}>
+                                <div className="demo-browser"><i /><i /><i /><span>preview.shrishubh</span></div>
+                                <div className="demo-preview-content"><small>{demo.type} / CONCEPT</small><strong>{demo.title}</strong><div className="demo-lines"><i /><i /><i /></div><span className="demo-cta">Discover more ↗</span></div>
+                            </div>
+                            <div className="demo-meta"><span>{demo.number} / {demo.type}</span><h3>{demo.title}</h3><p>{demo.description}</p><a href="#contact" className="text-link">Discuss a similar site <ArrowRight size={15} /></a></div>
+                        </article>
+                    ))}
+                </div>
+            </div>
+        </section>
+    )
+}
+
+function PricingCalculator() {
+    const [plan, setPlan] = useState('Professional')
+    const [pages, setPages] = useState('10')
+    const [extras, setExtras] = useState([])
+    const basePrices = { Starter: 3999, Professional: 5999, 'Business Plus': 13999 }
+    const extraPrices = { 'Extra pages (5)': 1500, 'Online store features': 4000, 'Booking or advanced form': 2000, 'Content/SEO support': 1500 }
+    const toggleExtra = (extra) => setExtras(current => current.includes(extra) ? current.filter(item => item !== extra) : [...current, extra])
+    const total = basePrices[plan] + (pages === '15' ? 1500 : pages === '20' ? 3000 : 0) + extras.reduce((sum, extra) => sum + extraPrices[extra], 0)
+    const quoteText = encodeURIComponent(`Hi ShriShubh, I'd like a quote. Package: ${plan}; page range: ${pages}; optional features: ${extras.join(', ') || 'None'}; estimated starting total: ₹${total.toLocaleString('en-IN')}. Please confirm the final scope and price.`)
+    return (
+        <section className="section calculator-section" id="calculator">
+            <div className="container calculator-grid">
+                <div><div className="eyebrow">PLAN YOUR PROJECT</div><h2>Build your<br /><span>estimate.</span></h2><p className="calculator-intro">Choose a starting package and optional features to see an indicative estimate. Final pricing is confirmed after discussing your requirements.</p><div className="calculator-note"><ShieldCheck size={18} /><span>Transparent estimate · No payment collected here</span></div></div>
+                <div className="calculator-card">
+                    <label>Starting package<select value={plan} onChange={e => setPlan(e.target.value)}>{Object.keys(basePrices).map(name => <option key={name}>{name}</option>)}</select></label>
+                    <label>Approximate page count<select value={pages} onChange={e => setPages(e.target.value)}><option value="5">Up to 5 pages</option><option value="10">Up to 10 pages</option><option value="15">Up to 15 pages (+₹1,500)</option><option value="20">Up to 20 pages (+₹3,000)</option></select></label>
+                    <div className="calculator-options"><span className="calculator-label">OPTIONAL ADD-ONS</span>{Object.entries(extraPrices).map(([name, price]) => <label className="check-option" key={name}><input type="checkbox" checked={extras.includes(name)} onChange={() => toggleExtra(name)} /><span>{name}</span><small>+₹{price.toLocaleString('en-IN')}</small></label>)}</div>
+                    <div className="estimate-total"><span>Indicative starting estimate</span><strong>₹{total.toLocaleString('en-IN')}</strong></div>
+                    <a className="button calculator-submit" href={`mailto:shrishubh521@gmail.com?subject=ShriShubh%20Website%20Quote&body=${quoteText}`}>Request this quote <ArrowRight size={16} /></a>
+                    <p className="pricing-note">This is a planning estimate, not a binding quote. Hosting, domain, taxes and third-party subscriptions may be extra.</p>
+                </div>
             </div>
         </section>
     )
@@ -528,18 +590,22 @@ function Footer() {
 }
 
 export default function App() {
+    const [theme, setTheme] = useState(() => localStorage.getItem('shrishubh-theme') || 'dark')
+    useEffect(() => { localStorage.setItem('shrishubh-theme', theme) }, [theme])
     return (
-        <>
-            <Header />
+        <div className="app-shell" data-theme={theme}>
+            <Header theme={theme} setTheme={setTheme} />
             <main>
                 <Hero />
                 <Services />
+                <DemoGallery />
                 <Pricing />
+                <PricingCalculator />
                 <About />
                 <FAQ />
                 <Contact />
             </main>
             <Footer />
-        </>
+        </div>
     )
 }
