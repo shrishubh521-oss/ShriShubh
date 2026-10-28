@@ -60,7 +60,7 @@ section { scroll-margin-top: 90px; }
 .button-small { min-height: 40px; padding: 0 15px; }
 .button-ghost { background: transparent; border-color: #3b3b3b; color: #f4f4f4; }
 .button-ghost:hover { border-color: var(--gold); background: rgba(245,196,0,.07); }
-.mobile-menu { display: none; background: transparent; border: 0; cursor: pointer; }
+.mobile-menu-button { display: none; background: transparent; border: 0; cursor: pointer; }
 
 .hero { position: relative; overflow: hidden; padding: 92px 0 26px; }
 .hero-glow { position: absolute; pointer-events: none; width: 570px; height: 570px; right: -130px; top: 15px; background: radial-gradient(circle, rgba(245,196,0,.09), transparent 68%); }
@@ -217,7 +217,7 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
   .header { height: 72px; }
   .brand-mark { width: 38px; height: 38px; }
   .brand-name { font-size: 21px; }
-  .mobile-menu { display: grid; place-items: center; padding: 8px; }
+  .mobile-menu-button { display: grid; place-items: center; padding: 8px; }
   .nav-links { display: none; position: absolute; top: 71px; left: 0; right: 0; padding: 20px 24px 25px; flex-direction: column; align-items: stretch; gap: 22px; background: #0c0c0c; border-bottom: 1px solid #333; }
   .nav-links.nav-open { display: flex; }
   .nav-links .button { align-self: flex-start; }
