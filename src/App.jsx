@@ -270,6 +270,16 @@ function Hero() {
 }
 
 function Services() {
+    const [items, setItems] = useState(services)
+    useEffect(() => {
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\\/$/, '')
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        if (!url || !key || url.includes('YOUR-PROJECT')) return
+        fetch(\`\${url}/rest/v1/site_content?select=title,description,label,sort_order&content_type=eq.service&status=eq.published&order=sort_order.asc\`, { headers: { apikey: key, Authorization: \`Bearer \${key}\` } })
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(rows => { if (Array.isArray(rows) && rows.length) setItems(rows.map(row => ({ icon: Globe, title: row.title, description: row.description, tag: row.label || 'SERVICE' }))) })
+            .catch(() => {})
+    }, [])
     return (
         <section className="section" id="services">
             <div className="container">
@@ -281,7 +291,7 @@ function Services() {
                     <p>From your first website to your next big idea, we help turn business goals into useful digital experiences.</p>
                 </div>
                 <div className="service-grid">
-                    {services.map(({ icon: Icon, title, description, tag }, index) => (
+                    {items.map(({ icon: Icon, title, description, tag }, index) => (
                         <article className="service-card" key={title}>
                             <div className="service-card-top">
                                 <span className="service-icon"><Icon size={22} /></span>
@@ -476,6 +486,16 @@ function About() {
 
 function FAQ() {
     const [active, setActive] = useState(0)
+    const [items, setItems] = useState(faqs)
+    useEffect(() => {
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\\/$/, '')
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
+        if (!url || !key || url.includes('YOUR-PROJECT')) return
+        fetch(\`\${url}/rest/v1/site_content?select=title,description,sort_order&content_type=eq.faq&status=eq.published&order=sort_order.asc\`, { headers: { apikey: key, Authorization: \`Bearer \${key}\` } })
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(rows => { if (Array.isArray(rows) && rows.length) setItems(rows.map(row => ({ q: row.title, a: row.description }))) })
+            .catch(() => {})
+    }, [])
 
     return (
         <section className="section faq-section" id="faq">
@@ -487,7 +507,7 @@ function FAQ() {
                     <a href="#contact" className="text-link">Ask us directly <ArrowRight size={15} /></a>
                 </div>
                 <div className="faq-list">
-                    {faqs.map((faq, index) => (
+                    {items.map((faq, index) => (
                         <article className={active === index ? 'faq-item faq-active' : 'faq-item'} key={faq.q}>
                             <button type="button" onClick={() => setActive(active === index ? -1 : index)}>
                                 <span>{faq.q}</span><ChevronDown size={18} />
