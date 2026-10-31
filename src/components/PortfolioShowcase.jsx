@@ -7,7 +7,9 @@ const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
 function safeHttpUrl(value) {
     try {
         const url = new URL(value)
-        return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : null
+        const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '')
+        if (url.protocol !== 'https:' || url.username || url.password || !host.includes('.') || host.endsWith('.') || host.includes(':') || host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal') || host.endsWith('.test') || /^\d+(\.\d+){3}$/.test(host) || (url.port && url.port !== '443')) return null
+        return url.href
     } catch {
         return null
     }
