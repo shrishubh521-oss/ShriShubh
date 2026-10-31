@@ -523,6 +523,14 @@ function Contact() {
         setSent(false)
         setError('')
 
+        // A honeypot field catches unsophisticated automated submissions.
+        // Real abuse prevention must also be enforced by a server-side endpoint.
+        const honeypot = event.currentTarget.elements.namedItem('website')
+        if (honeypot && honeypot.value) {
+            setSent(true)
+            return
+        }
+
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
         const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
@@ -590,7 +598,10 @@ ${form.message}`
                 <form className="contact-form" onSubmit={submit}>
                     <div className="form-heading"><span>PROJECT ENQUIRY</span><span className="form-step">01 / 01</span></div>
 
-
+                    <label aria-hidden="true" style={{ position: 'absolute', left: '-10000px', width: '1px', height: '1px', overflow: 'hidden' }}>
+                        Leave this field empty
+                        <input name="website" type="text" tabIndex="-1" autoComplete="off" />
+                    </label>
 
                     <label>
                         Your name
@@ -636,7 +647,7 @@ ${form.message}`
                     </button>
                     {sent && <p className="form-privacy" role="status">Thank you! Your enquiry has been saved. We'll review your details and get back to you.</p>}
                     {error && <p className="form-privacy" role="alert">{error}</p>}
-                    {!sent && !error && <p className="form-privacy">Your details are used to respond to your project enquiry. Please don't include passwords or other sensitive information.</p>}
+                    {!sent && !error && <p className="form-privacy">Your details are used to respond to your project enquiry. Please don't include passwords or other sensitive information. See our <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noopener noreferrer">Privacy Policy</a>.</p>}
                 </form>
             </div>
         </section>
@@ -665,6 +676,9 @@ function Footer() {
                 </a>
                 <a href="mailto:shrishubh521@gmail.com">
                     shrishubh521@gmail.com
+                </a>
+                <a href={`${import.meta.env.BASE_URL}privacy.html`}>
+                    Privacy Policy
                 </a>
             </div>
         </footer>
