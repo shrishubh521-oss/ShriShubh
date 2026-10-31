@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { ArrowLeft, LogOut, RefreshCw, Search, Mail, ShieldCheck, Inbox, Clock3 } from 'lucide-react'
+import { ArrowLeft, LogOut, RefreshCw, Search, Mail, ShieldCheck, Inbox, Clock3, Globe } from 'lucide-react'
+import PortfolioManager from './components/PortfolioManager.jsx'
+import SiteContentManager from './components/SiteContentManager.jsx'
 
 const API_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
 const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -35,9 +37,8 @@ function dateLabel(value) {
 }
 
 export default function Admin() {
-    const [session, setSession] = useState(() => {
-        try { return JSON.parse(sessionStorage.getItem('shrishubh-admin-session') || 'null') } catch { return null }
-    })
+    // Keep administrator tokens in memory only; a page reload requires a fresh sign-in.
+    const [session, setSession] = useState(null)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [enquiries, setEnquiries] = useState([])
@@ -119,7 +120,6 @@ export default function Admin() {
                 throw new Error('This account is not on the ShriShubh admin allowlist. Ask the project owner to verify the admin_users record and RLS policy.')
             }
             const nextSession = { access_token: token, refresh_token: result.refresh_token, user }
-            sessionStorage.setItem('shrishubh-admin-session', JSON.stringify(nextSession))
             setSession(nextSession)
             setPassword('')
             setNotice('Signed in securely.')
@@ -134,7 +134,6 @@ export default function Admin() {
         if (session?.access_token && API_URL) {
             try { await fetch(`${API_URL}/auth/v1/logout`, { method: 'POST', headers: { apikey: API_KEY, Authorization: `Bearer ${session.access_token}` } }) } catch { /* local sign-out still proceeds */ }
         }
-        sessionStorage.removeItem('shrishubh-admin-session')
         setSession(null)
         setEnquiries([])
         setSelectedId(null)
@@ -259,7 +258,7 @@ export default function Admin() {
                         <div><div className="admin-eyebrow">SHRISHUBH / WORKSPACE</div><h1>Enquiry inbox</h1><p>Review incoming requests and update their status.</p></div>
                         <button className="admin-secondary" onClick={() => { loadEnquiries(session.access_token); loadProjects(session.access_token) }} disabled={loading}><RefreshCw size={15} /> Refresh</button>
                     </div>
-                    <nav className="admin-view-tabs" aria-label="Admin sections"><button type="button" className={activeView === 'enquiries' ? 'active' : ''} onClick={() => setActiveView('enquiries')}><Inbox size={15} /> Enquiries</button><button type="button" className={activeView === 'projects' ? 'active' : ''} onClick={() => setActiveView('projects')}><Clock3 size={15} /> Projects</button><button type="button" className={activeView === 'pricing' ? 'active' : ''} onClick={() => setActiveView('pricing')}><ShieldCheck size={15} /> Pricing</button></nav>
+                    <nav className="admin-view-tabs" aria-label="Admin sections"><button type="button" className={activeView === 'enquiries' ? 'active' : ''} onClick={() => setActiveView('enquiries')}><Inbox size={15} /> Enquiries</button><button type="button" className={activeView === 'projects' ? 'active' : ''} onClick={() => setActiveView('projects')}><Clock3 size={15} /> Projects</button><button type="button" className={activeView === 'pricing' ? 'active' : ''} onClick={() => setActiveView('pricing')}><ShieldCheck size={15} /> Pricing</button><button type="button" className={activeView === 'portfolio' ? 'active' : ''} onClick={() => setActiveView('portfolio')}><Globe size={15} /> Portfolio</button><button type="button" className={activeView === 'content' ? 'active' : ''} onClick={() => setActiveView('content')}><Globe size={15} /> Content</button></nav>
                     <div className="admin-stats">
                         <div><Inbox size={19} /><span>Total enquiries</span><strong>{enquiries.length}</strong></div>
                         <div><Mail size={19} /><span>New enquiries</span><strong>{countNew}</strong></div>
@@ -267,7 +266,7 @@ export default function Admin() {
                     </div>
                     {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
                     {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
-                    {activeView === 'enquiries' ? <div className="admin-inbox-layout">
+                    {activeView === 'content' ? <SiteContentManager token={session.access_token} /> : activeView === 'enquiries' ? <div className="admin-inbox-layout">
                         <section className="admin-list-panel">
                             <div className="admin-filters">
                                 <label className="admin-search"><Search size={16} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name, email, service…" /></label>
@@ -319,7 +318,7 @@ export default function Admin() {
                             <div className="admin-project-meta"><span>Due date</span><strong>{project.due_date || 'Not set'}</strong></div>
                             {project.notes && <p className="admin-project-note">{project.notes}</p>}
                         </article>)}</div>}
-                    </section> : <section className="admin-pricing-view">
+                    </section> : activeView === 'portfolio' ? <PortfolioManager token={session.access_token} /> : <section className="admin-pricing-view">
                         <div className="admin-pricing-intro"><div className="admin-eyebrow">PACKAGE MANAGEMENT</div><h2>Edit website pricing</h2><p>Update package names, starting prices, descriptions and included features. Saving writes to Supabase.</p></div>
                         <div className="admin-pricing-grid">{packages.map(pkg => <form className="admin-pricing-card" key={pkg.id} onSubmit={event => { event.preventDefault(); savePackage(pkg) }}>
                             <div className="admin-pricing-card-heading"><div><span className="admin-eyebrow">PACKAGE / {pkg.id}</span><h3>{pkg.name}</h3></div><label className="admin-active-toggle"><input type="checkbox" checked={Boolean(pkg.is_active)} onChange={e => updatePackage(pkg.id, { is_active: e.target.checked })} /> Visible</label></div>
