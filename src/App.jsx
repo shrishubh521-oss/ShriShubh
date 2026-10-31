@@ -15,6 +15,8 @@ import {
     Zap,
     Star,
     MessageCircle,
+    Instagram,
+    Mail,
     ChevronDown,
     Send,
     Sun,
@@ -161,7 +163,7 @@ function Header({ theme, setTheme }) {
     const [open, setOpen] = useState(false)
     const links = [
         ['Services', '#services'],
-        ['Portfolio', '#portfolio'],
+        ['Our Showcase', '#portfolio'],
         ['Pricing', '#pricing'],
         ['About', '#about'],
         ['FAQ', '#faq'],
@@ -688,20 +690,43 @@ function Footer() {
                 <span>© {new Date().getFullYear()} ShriShubh. All rights reserved.</span>
                 <span>DESIGNED WITH PURPOSE <span className="gold-dot">●</span></span>
             </div>
-            <div className="social-links">
-                <a
-                    href="https://www.instagram.com/shrishubh2026_web_builder?stkn=NjJsYTF0bG9ramFz"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    Follow us on Instagram ↗
-                </a>
-                <a href="mailto:shrishubh521@gmail.com">
-                    shrishubh521@gmail.com
-                </a>
-                <a href={`${import.meta.env.BASE_URL}privacy.html`}>
-                    Privacy Policy
-                </a>
+            <div className="container social-contact">
+                <div className="social-contact-heading">
+                    <span className="eyebrow">LET'S CONNECT</span>
+                    <h2>Have a project in mind?</h2>
+                    <p>Reach out on Instagram or send us an email. We'd be happy to hear from you.</p>
+                </div>
+                <div className="social-links">
+                    <a
+                        className="social-contact-button"
+                        href="https://www.instagram.com/shrishubh2026_web_builder/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Visit ShriShubh on Instagram"
+                    >
+                        <Instagram size={20} aria-hidden="true" />
+                        <span><strong>Instagram</strong><small>@shrishubh2026_web_builder</small></span>
+                        <ArrowRight size={16} aria-hidden="true" />
+                    </a>
+                    <a
+                        className="social-contact-button"
+                        href="mailto:shrishubh521@gmail.com"
+                        aria-label="Email ShriShubh"
+                    >
+                        <Mail size={20} aria-hidden="true" />
+                        <span><strong>Email us</strong><small>shrishubh521@gmail.com</small></span>
+                        <ArrowRight size={16} aria-hidden="true" />
+                    </a>
+                    <a
+                        className="social-contact-button"
+                        href={`${import.meta.env.BASE_URL}privacy.html`}
+                        aria-label="Read ShriShubh Privacy Policy"
+                    >
+                        <ShieldCheck size={20} aria-hidden="true" />
+                        <span><strong>Privacy Policy</strong><small>How we protect your information</small></span>
+                        <ArrowRight size={16} aria-hidden="true" />
+                    </a>
+                </div>
             </div>
         </footer>
     )
