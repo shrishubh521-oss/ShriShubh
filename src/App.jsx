@@ -168,6 +168,7 @@ function Header({ theme, setTheme }) {
         ['Pricing', '#pricing'],
         ['About', '#about'],
         ['FAQ', '#faq'],
+        ['Reviews', '#reviews'],
     ]
 
     return (
@@ -733,8 +734,29 @@ function Footer() {
     )
 }
 
+function PrivacyPolicyPopup({ onAccept }) {
+    return (
+        <div className="privacy-consent-backdrop" role="presentation">
+            <section className="privacy-consent-modal" role="dialog" aria-modal="true" aria-labelledby="privacy-consent-title">
+                <div className="privacy-consent-heading">
+                    <span className="eyebrow">YOUR PRIVACY MATTERS</span>
+                    <h2 id="privacy-consent-title">ShriShubh Privacy Policy</h2>
+                    <p>Please read our privacy policy before continuing to the website.</p>
+                </div>
+                <iframe className="privacy-consent-frame" title="ShriShubh Privacy Policy" src={`${import.meta.env.BASE_URL}privacy.html`} />
+                <div className="privacy-consent-actions">
+                    <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noopener noreferrer">Open full policy</a>
+                    <button type="button" className="button" onClick={onAccept}>Accept</button>
+                </div>
+                <p className="privacy-consent-note">Your acknowledgement is saved in this browser. You can read the policy again anytime from the website footer.</p>
+            </section>
+        </div>
+    )
+}
+
 export default function App() {
     const [theme, setTheme] = useState(() => localStorage.getItem('shrishubh-theme') || 'dark')
+    const [privacyAccepted, setPrivacyAccepted] = useState(() => localStorage.getItem('shrishubh-privacy-accepted-v1') === 'yes')
     const [isAdminRoute, setIsAdminRoute] = useState(() => window.location.hash.startsWith('#admin'))
     useEffect(() => { localStorage.setItem('shrishubh-theme', theme) }, [theme])
     useEffect(() => {
@@ -759,6 +781,7 @@ export default function App() {
                 <Contact />
             </main>
             <Footer />
+            {!privacyAccepted && <PrivacyPolicyPopup onAccept={() => { localStorage.setItem('shrishubh-privacy-accepted-v1', 'yes'); setPrivacyAccepted(true) }} />}
         </div>
     )
 }
