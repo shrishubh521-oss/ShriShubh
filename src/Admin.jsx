@@ -202,7 +202,7 @@ export default function Admin() {
                 name,
                 price_inr: Number(newPackage.price_inr),
                 description: newPackage.description.trim(),
-                features: newPackage.features.split('\\n').map(item => item.trim()).filter(Boolean).slice(0, 20),
+                features: newPackage.features.split('\n').map(item => item.trim()).filter(Boolean).slice(0, 20),
                 is_active: newPackage.is_active,
                 updated_at: new Date().toISOString(),
             }
@@ -377,7 +377,7 @@ export default function Admin() {
                             <label>Service / package name<input required maxLength="60" value={newPackage.name} onChange={e => setNewPackage({ ...newPackage, name: e.target.value })} placeholder="e.g. SEO Optimization" /></label>
                             <label>Price (₹)<input type="number" min="0" max="10000000" step="1" required value={newPackage.price_inr} onChange={e => setNewPackage({ ...newPackage, price_inr: e.target.value })} placeholder="e.g. 4999" /></label>
                             <label>Description<textarea rows="3" maxLength="300" value={newPackage.description} onChange={e => setNewPackage({ ...newPackage, description: e.target.value })} placeholder="Briefly describe this service" /></label>
-                            <label>Included features<textarea rows="4" value={newPackage.features} onChange={e => setNewPackage({ ...newPackage, features: e.target.value })} placeholder={'One feature per line\\nResponsive design\\nBasic SEO setup'} /><small>One feature per line, up to 20 features.</small></label>
+                            <label>Included features<textarea rows="4" value={newPackage.features} onChange={e => setNewPackage({ ...newPackage, features: e.target.value })} placeholder={'One feature per line\nResponsive design\nBasic SEO setup'} /><small>One feature per line, up to 20 features.</small></label>
                             <label className="admin-active-toggle"><input type="checkbox" checked={newPackage.is_active} onChange={e => setNewPackage({ ...newPackage, is_active: e.target.checked })} /> Publish on website</label>
                             <button className="admin-primary" type="submit" disabled={creatingPackage || !newPackage.name.trim() || newPackage.price_inr === ''}>{creatingPackage ? 'Adding service…' : 'Add service to pricing'}</button>
                         </form>
@@ -386,7 +386,7 @@ export default function Admin() {
                             <label>Package name<input required maxLength="60" value={pkg.name} onChange={e => updatePackage(pkg.id, { name: e.target.value })} /></label>
                             <label>Starting price (₹)<input type="number" min="0" max="10000000" step="1" required value={pkg.price_inr} onChange={e => updatePackage(pkg.id, { price_inr: e.target.value })} /></label>
                             <label>Description<textarea rows="3" maxLength="300" value={pkg.description} onChange={e => updatePackage(pkg.id, { description: e.target.value })} /></label>
-                            <label>Included features <textarea rows="5" value={pkg.features.join('\\n')} onChange={e => updatePackage(pkg.id, { features: e.target.value.split('\\n').map(x => x.trim()).filter(Boolean).slice(0, 20) })} /><small>One feature per line, up to 20 features.</small></label>
+                            <label>Included features <textarea rows="5" value={pkg.features.join('\n')} onChange={e => updatePackage(pkg.id, { features: e.target.value.split('\n').map(x => x.trim()).filter(Boolean).slice(0, 20) })} /><small>One feature per line, up to 20 features.</small></label>
                             <button className="admin-primary" type="submit" disabled={savingPackageId === pkg.id}>{savingPackageId === pkg.id ? 'Saving…' : 'Save package'}</button>
                             <button className="admin-secondary" type="button" onClick={() => deletePackage(pkg)}>Delete service</button>
                         </form>)}</div>
