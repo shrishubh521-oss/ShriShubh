@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ArrowLeft, LogOut, RefreshCw, Search, Mail, ShieldCheck, Inbox, Clock3, Globe } from 'lucide-react'
 import PortfolioManager from './components/PortfolioManager.jsx'
 import SiteContentManager from './components/SiteContentManager.jsx'
+import ReviewManager from './components/ReviewManager.jsx'
 
 const API_URL = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
 const API_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
@@ -310,7 +311,7 @@ export default function Admin() {
                         <div><div className="admin-eyebrow">SHRISHUBH / WORKSPACE</div><h1>Enquiry inbox</h1><p>Review incoming requests and update their status.</p></div>
                         <button className="admin-secondary" onClick={() => { loadEnquiries(session.access_token); loadProjects(session.access_token) }} disabled={loading}><RefreshCw size={15} /> Refresh</button>
                     </div>
-                    <nav className="admin-view-tabs" aria-label="Admin sections"><button type="button" className={activeView === 'enquiries' ? 'active' : ''} onClick={() => setActiveView('enquiries')}><Inbox size={15} /> Enquiries</button><button type="button" className={activeView === 'projects' ? 'active' : ''} onClick={() => setActiveView('projects')}><Clock3 size={15} /> Projects</button><button type="button" className={activeView === 'pricing' ? 'active' : ''} onClick={() => setActiveView('pricing')}><ShieldCheck size={15} /> Pricing</button><button type="button" className={activeView === 'portfolio' ? 'active' : ''} onClick={() => setActiveView('portfolio')}><Globe size={15} /> Portfolio</button><button type="button" className={activeView === 'content' ? 'active' : ''} onClick={() => setActiveView('content')}><Globe size={15} /> Content</button></nav>
+                    <nav className="admin-view-tabs" aria-label="Admin sections"><button type="button" className={activeView === 'enquiries' ? 'active' : ''} onClick={() => setActiveView('enquiries')}><Inbox size={15} /> Enquiries</button><button type="button" className={activeView === 'projects' ? 'active' : ''} onClick={() => setActiveView('projects')}><Clock3 size={15} /> Projects</button><button type="button" className={activeView === 'pricing' ? 'active' : ''} onClick={() => setActiveView('pricing')}><ShieldCheck size={15} /> Pricing</button><button type="button" className={activeView === 'portfolio' ? 'active' : ''} onClick={() => setActiveView('portfolio')}><Globe size={15} /> Portfolio</button><button type="button" className={activeView === 'content' ? 'active' : ''} onClick={() => setActiveView('content')}><Globe size={15} /> Content</button><button type="button" className={activeView === 'reviews' ? 'active' : ''} onClick={() => setActiveView('reviews')}><Mail size={15} /> Reviews</button></nav>
                     <div className="admin-stats">
                         <div><Inbox size={19} /><span>Total enquiries</span><strong>{enquiries.length}</strong></div>
                         <div><Mail size={19} /><span>New enquiries</span><strong>{countNew}</strong></div>
@@ -318,7 +319,7 @@ export default function Admin() {
                     </div>
                     {error && <div className="admin-alert admin-alert-error" role="alert">{error}</div>}
                     {notice && <div className="admin-alert admin-alert-success" role="status">{notice}</div>}
-                    {activeView === 'content' ? <SiteContentManager token={session.access_token} /> : activeView === 'enquiries' ? <div className="admin-inbox-layout">
+                    {activeView === 'reviews' ? <ReviewManager token={session.access_token} /> : activeView === 'content' ? <SiteContentManager token={session.access_token} /> : activeView === 'enquiries' ? <div className="admin-inbox-layout">
                         <section className="admin-list-panel">
                             <div className="admin-filters">
                                 <label className="admin-search"><Search size={16} /><input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search name, email, service…" /></label>
