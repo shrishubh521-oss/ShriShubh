@@ -6,7 +6,7 @@ begin;
 
 -- Restrict table privileges independently of RLS. RLS remains the row-level boundary.
 revoke all on table public.enquiries from anon, authenticated;
-grant insert (name, email, service, budget, message) on table public.enquiries to anon, authenticated;
+grant insert (name, email, service, budget, message, status) on table public.enquiries to anon, authenticated;
 grant select, update, delete on table public.enquiries to authenticated;
 
 revoke all on table public.pricing_packages from anon, authenticated;
