@@ -272,10 +272,10 @@ function Hero() {
 function Services() {
     const [items, setItems] = useState(services)
     useEffect(() => {
-        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\\/$/, '')
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
         const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
         if (!url || !key || url.includes('YOUR-PROJECT')) return
-        fetch(\`\${url}/rest/v1/site_content?select=title,description,label,sort_order&content_type=eq.service&status=eq.published&order=sort_order.asc\`, { headers: { apikey: key, Authorization: \`Bearer \${key}\` } })
+        fetch(`${url}/rest/v1/site_content?select=title,description,label,sort_order&content_type=eq.service&status=eq.published&order=sort_order.asc`, { headers: { apikey: key, Authorization: `Bearer ${key}` } })
             .then(response => response.ok ? response.json() : Promise.reject())
             .then(rows => { if (Array.isArray(rows) && rows.length) setItems(rows.map(row => ({ icon: Globe, title: row.title, description: row.description, tag: row.label || 'SERVICE' }))) })
             .catch(() => {})
@@ -488,10 +488,10 @@ function FAQ() {
     const [active, setActive] = useState(0)
     const [items, setItems] = useState(faqs)
     useEffect(() => {
-        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\\/$/, '')
+        const url = (import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')
         const key = import.meta.env.VITE_SUPABASE_ANON_KEY || ''
         if (!url || !key || url.includes('YOUR-PROJECT')) return
-        fetch(\`\${url}/rest/v1/site_content?select=title,description,sort_order&content_type=eq.faq&status=eq.published&order=sort_order.asc\`, { headers: { apikey: key, Authorization: \`Bearer \${key}\` } })
+        fetch(`${url}/rest/v1/site_content?select=title,description,sort_order&content_type=eq.faq&status=eq.published&order=sort_order.asc`, { headers: { apikey: key, Authorization: `Bearer ${key}` } })
             .then(response => response.ok ? response.json() : Promise.reject())
             .then(rows => { if (Array.isArray(rows) && rows.length) setItems(rows.map(row => ({ q: row.title, a: row.description }))) })
             .catch(() => {})
