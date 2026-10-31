@@ -5,11 +5,11 @@
 create table if not exists public.portfolio_projects (
   id uuid primary key default gen_random_uuid(),
   title text not null check (char_length(trim(title)) between 2 and 100),
-  website_url text not null check (website_url ~* '^https?://[^[:space:]]+$'),
+  website_url text not null check (website_url ~* '^https://[^/@[:space:]]+'),
   description text not null default '' check (char_length(description) <= 500),
   category text not null default 'Website' check (char_length(category) <= 60),
   technologies text[] not null default '{}',
-  thumbnail_url text,
+  thumbnail_url text check (thumbnail_url is null or thumbnail_url ~* '^https://[^/@[:space:]]+'),
   is_featured boolean not null default false,
   status text not null default 'draft' check (status in ('draft','published','archived')),
   sort_order integer not null default 0 check (sort_order between 0 and 9999),
