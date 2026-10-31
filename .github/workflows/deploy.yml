@@ -34,8 +34,8 @@ jobs:
 
       - name: Build website
         env:
-          VITE_SUPABASE_URL: ${{ vars.SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+          VITE_SUPABASE_URL: ${{ https://nbhsuxybaplkhpvoghul.supabase.co }}
+          VITE_SUPABASE_ANON_KEY: ${{sb_publishable_Pf3AqR84BnHUYUj_E8GL3Q_8JZooaB7}}
         run: npm run build
 
       - name: Upload website
