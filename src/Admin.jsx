@@ -35,9 +35,8 @@ function dateLabel(value) {
 }
 
 export default function Admin() {
-    const [session, setSession] = useState(() => {
-        try { return JSON.parse(sessionStorage.getItem('shrishubh-admin-session') || 'null') } catch { return null }
-    })
+    // Keep administrator tokens in memory only; a page reload requires a fresh sign-in.
+    const [session, setSession] = useState(null)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [enquiries, setEnquiries] = useState([])
@@ -119,7 +118,6 @@ export default function Admin() {
                 throw new Error('This account is not on the ShriShubh admin allowlist. Ask the project owner to verify the admin_users record and RLS policy.')
             }
             const nextSession = { access_token: token, refresh_token: result.refresh_token, user }
-            sessionStorage.setItem('shrishubh-admin-session', JSON.stringify(nextSession))
             setSession(nextSession)
             setPassword('')
             setNotice('Signed in securely.')
@@ -134,7 +132,6 @@ export default function Admin() {
         if (session?.access_token && API_URL) {
             try { await fetch(`${API_URL}/auth/v1/logout`, { method: 'POST', headers: { apikey: API_KEY, Authorization: `Bearer ${session.access_token}` } }) } catch { /* local sign-out still proceeds */ }
         }
-        sessionStorage.removeItem('shrishubh-admin-session')
         setSession(null)
         setEnquiries([])
         setSelectedId(null)
