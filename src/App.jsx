@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Admin from './Admin.jsx'
+import PortfolioShowcase from './components/PortfolioShowcase.jsx'
 import {
     ArrowRight,
     Check,
@@ -702,6 +703,7 @@ export default function App() {
                 <Hero />
                 <Services />
                 <DemoGallery />
+                <PortfolioShowcase />
                 <Pricing />
                 <PricingCalculator />
                 <About />
