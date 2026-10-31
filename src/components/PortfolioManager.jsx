@@ -8,9 +8,11 @@ const EMPTY = { title: '', website_url: '', description: '', category: 'Website'
 function normalizeWebsiteUrl(value) {
     try {
         const url = new URL(value.trim())
-        if (!['https:', 'http:'].includes(url.protocol) || url.username || url.password) return null
-        const host = url.hostname.toLowerCase()
-        if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host === '127.0.0.1' || host === '::1' || /^10\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host)) return null
+        if (url.protocol !== 'https:' || url.username || url.password) return null
+        const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, '')
+        // Accept public DNS hostnames only. Do not embed localhost, private IPs or local network names.
+        if (!host.includes('.') || host.endsWith('.') || host.includes(':') || host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local') || host.endsWith('.internal') || host.endsWith('.test') || /^\d+(\.\d+){3}$/.test(host)) return null
+        if (url.port && url.port !== '443') return null
         return url.href
     } catch { return null }
 }
