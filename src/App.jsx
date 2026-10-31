@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import Admin from './Admin.jsx'
 import PortfolioShowcase from './components/PortfolioShowcase.jsx'
+import ReviewSection from './components/ReviewSection.jsx'
 import {
     ArrowRight,
     Check,
@@ -754,6 +755,7 @@ export default function App() {
                 <PricingCalculator />
                 <About />
                 <FAQ />
+                <ReviewSection />
                 <Contact />
             </main>
             <Footer />
