@@ -1,6 +1,6 @@
 # ShriShubh 2.0 Implementation Plan
 
-Status: proposed design; implementation not yet started.
+Status: staged implementation in progress. The URL-based portfolio showcase has been added to the dev branch; remaining feature groups are still planned.
 Target branch: dev
 Production branch: main (no merge or deployment without explicit owner approval).
 
@@ -31,7 +31,7 @@ Upgrade the existing public ShriShubh website and admin console into a coordinat
 - Reports and analytics
 - Email notification manager
 
-## Website Showcase & Live Preview — confirmed URL-only input
+## Website Showcase & Live Preview — confirmed URL-only input (implemented on dev; Supabase migration pending)
 
 The portfolio editor accepts a public website URL. Pasted HTML/JS and ZIP uploads are not part of this feature's confirmed scope.
 
