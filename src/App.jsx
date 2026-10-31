@@ -161,6 +161,7 @@ function Header({ theme, setTheme }) {
     const [open, setOpen] = useState(false)
     const links = [
         ['Services', '#services'],
+        ['Portfolio', '#portfolio'],
         ['Pricing', '#pricing'],
         ['About', '#about'],
         ['FAQ', '#faq'],
