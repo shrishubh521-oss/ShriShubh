@@ -39,9 +39,9 @@ export default function PortfolioShowcase() {
             <div className="container">
                 <div className="section-heading">
                     <div><div className="eyebrow">LIVE WEBSITE SHOWCASE</div><h2>Work worth<br /><span>exploring.</span></h2></div>
-                    <p>Explore selected websites added to our portfolio. Open an interactive preview where the website allows embedding, or visit the live site directly.</p>
+                    <p>Explore selected websites and digital experiences created by ShriShubh. Open an interactive preview where the website allows embedding, or visit the live site directly.</p>
                 </div>
-                {items.length === 0 ? <div className="portfolio-empty"><span>SHRISHUBH / PORTFOLIO</span><h3>Our website showcase is getting ready.</h3><p>Published website projects will appear here.</p></div> : (
+                {items.length === 0 ? <div className="portfolio-empty"><span>SHRISHUBH / SHOWCASE</span><h3>Our website showcase is getting ready.</h3><p>Published website projects will appear here.</p></div> : (
                     <div className="portfolio-grid">{items.map(item => (
                         <article className="portfolio-card" key={item.id}>
                             <button type="button" className="portfolio-thumb" onClick={() => openPreview(item)} aria-label={`Preview ${item.title}`}>
