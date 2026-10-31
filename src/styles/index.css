@@ -469,6 +469,7 @@ h2 { font-size: clamp(35px, 4vw, 51px); line-height: 1.13; margin-bottom: 0; }
 .admin-pricing-intro p { max-width:650px; color:#999; font-size:12px; line-height:1.8; }
 .admin-pricing-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; align-items:start; }
 .admin-pricing-card { min-width:0; padding:20px; border:1px solid #303030; border-radius:9px; background:#101010; }
+.admin-pricing-add-form { width:100%; max-width:760px; }
 .admin-pricing-card-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:20px; }
 .admin-pricing-card-heading h3 { margin:8px 0 0; font-size:20px; }
 .admin-pricing-card>label { display:grid; gap:8px; margin-top:15px; color:#ccc; font-size:11px; }
