@@ -717,8 +717,16 @@ function Footer() {
                         <span><strong>Email us</strong><small>shrishubh521@gmail.com</small></span>
                         <ArrowRight size={16} aria-hidden="true" />
                     </a>
+                    <a
+                        className="social-contact-button"
+                        href={`${import.meta.env.BASE_URL}privacy.html`}
+                        aria-label="Read ShriShubh Privacy Policy"
+                    >
+                        <ShieldCheck size={20} aria-hidden="true" />
+                        <span><strong>Privacy Policy</strong><small>How we protect your information</small></span>
+                        <ArrowRight size={16} aria-hidden="true" />
+                    </a>
                 </div>
-                <a className="social-privacy-link" href={`${import.meta.env.BASE_URL}privacy.html`}>Privacy Policy</a>
             </div>
         </footer>
     )
