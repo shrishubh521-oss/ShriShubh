@@ -317,7 +317,7 @@ export default function Admin() {
                             <div className="admin-project-meta"><span>Due date</span><strong>{project.due_date || 'Not set'}</strong></div>
                             {project.notes && <p className="admin-project-note">{project.notes}</p>}
                         </article>)}</div>}
-                    </section> : <section className="admin-pricing-view">
+                    </section> : activeView === 'portfolio' ? <PortfolioManager token={session.access_token} /> : <section className="admin-pricing-view">
                         <div className="admin-pricing-intro"><div className="admin-eyebrow">PACKAGE MANAGEMENT</div><h2>Edit website pricing</h2><p>Update package names, starting prices, descriptions and included features. Saving writes to Supabase.</p></div>
                         <div className="admin-pricing-grid">{packages.map(pkg => <form className="admin-pricing-card" key={pkg.id} onSubmit={event => { event.preventDefault(); savePackage(pkg) }}>
                             <div className="admin-pricing-card-heading"><div><span className="admin-eyebrow">PACKAGE / {pkg.id}</span><h3>{pkg.name}</h3></div><label className="admin-active-toggle"><input type="checkbox" checked={Boolean(pkg.is_active)} onChange={e => updatePackage(pkg.id, { is_active: e.target.checked })} /> Visible</label></div>
