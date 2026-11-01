@@ -207,17 +207,20 @@ function Hero() {
     return (
         <section className="hero" id="home">
             <div className="hero-glow" />
+            <div className="hero-atmosphere" aria-hidden="true">
+                <span className="hero-grid-glow" />
+                <span className="hero-noise" />
+            </div>
             <div className="container hero-grid">
                 <div className="hero-content">
                     <div className="eyebrow"><span className="status-dot" /> DIGITAL EXPERIENCES, BUILT BETTER</div>
                     <h1>
-                        Your ideas.<br />
-                        <span>Our craft.</span><br />
-                        A better web.
+                        Ideas that<br />
+                        <span>inspire & transform.</span>
                     </h1>
                     <p className="hero-description">
-                        Professional websites. Transparent pricing. Simple process.
-                        Everything you need to build your next digital experience.
+                        We turn ambitious ideas into thoughtful digital experiences.
+                        Discover professional websites, purposeful design and solutions built around your goals.
                     </p>
                     <div className="hero-actions">
                         <a href="#contact" className="button">
@@ -231,7 +234,11 @@ function Hero() {
                     </div>
                 </div>
 
-                <div className="hero-art" aria-label="Website design preview">
+                <div className="hero-art" aria-label="Abstract digital experience visual">
+                    <div className="hero-orb hero-orb-one" aria-hidden="true" />
+                    <div className="hero-orb hero-orb-two" aria-hidden="true" />
+                    <div className="hero-orb hero-orb-three" aria-hidden="true" />
+                    <div className="hero-orb-core" aria-hidden="true" />
                     <div className="art-orbit orbit-one" />
                     <div className="art-orbit orbit-two" />
                     <div className="browser-card">
@@ -755,7 +762,11 @@ function PrivacyPolicyPopup({ onAccept }) {
 }
 
 export default function App() {
-    const [theme, setTheme] = useState(() => localStorage.getItem('shrishubh-theme') || 'dark')
+    const [theme, setTheme] = useState(() => {
+        const savedTheme = localStorage.getItem('shrishubh-theme')
+        if (savedTheme === 'light' || savedTheme === 'dark') return savedTheme
+        return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    })
     const [privacyAccepted, setPrivacyAccepted] = useState(() => localStorage.getItem('shrishubh-privacy-accepted-v1') === 'yes')
     const [isAdminRoute, setIsAdminRoute] = useState(() => window.location.hash.startsWith('#admin'))
     useEffect(() => { localStorage.setItem('shrishubh-theme', theme) }, [theme])
